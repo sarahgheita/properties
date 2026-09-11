@@ -1,4 +1,4 @@
-# Diyar Properties
+# BEA Real Estate
 
 A real-estate marketplace for Egypt: property owners and renters submit listings, seekers post
 what they're looking for, everything is reviewed by a single admin (the agent) before it goes

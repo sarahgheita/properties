@@ -7,7 +7,7 @@ export const dir: Record<Locale, "ltr" | "rtl"> = { en: "ltr", ar: "rtl" };
 
 const en = {
   common: {
-    siteName: "Diyar Properties",
+    siteName: "BEA Real Estate",
     tagline: "Verified properties for sale and rent in Egypt",
   },
   propertyTypes: {
@@ -199,7 +199,7 @@ const en = {
 
 const ar: Dictionary = {
   common: {
-    siteName: "ديار للعقارات",
+    siteName: "بي إي إيه العقارية",
     tagline: "عقارات موثوقة للبيع والإيجار في مصر",
   },
   propertyTypes: {

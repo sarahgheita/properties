@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Diyar Properties",
-    "slug": "diyar-properties",
-    "scheme": "diyarproperties",
+    "name": "BEA Real Estate",
+    "slug": "bea-real-estate",
+    "scheme": "bearealestate",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

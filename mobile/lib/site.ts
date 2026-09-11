@@ -1,4 +1,4 @@
-export const SITE_NAME = "Diyar Properties";
+export const SITE_NAME = "BEA Real Estate";
 export const SITE_TAGLINE = "Verified properties for sale and rent in Egypt";
 
 // Base URL of the deployed web app — used so the mobile app can call the same
