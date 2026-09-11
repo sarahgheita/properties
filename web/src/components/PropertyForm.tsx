@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { scanForContactLeak } from "@/lib/moderation";
 import { useLocale } from "@/components/LocaleProvider";
-import type { ListingType, PropertyType } from "@/lib/database.types";
+import type { FinishingLevel, ListingType, PaymentMethod, PropertyType } from "@/lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
   "apartment",
@@ -20,7 +20,19 @@ const PROPERTY_TYPES: PropertyType[] = [
   "other",
 ];
 
+const FINISHING_LEVELS: FinishingLevel[] = ["super_lux", "finished", "semi_finished", "core_shell", "not_finished"];
+const PAYMENT_METHODS: PaymentMethod[] = ["cash", "installments"];
+
 const MAX_PHOTOS = 10;
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className="border-t border-[var(--border)] pt-6 first:border-t-0 first:pt-0">
+      <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">{title}</h2>
+      <div className="space-y-4">{children}</div>
+    </div>
+  );
+}
 
 export default function PropertyForm() {
   const router = useRouter();
@@ -41,6 +53,7 @@ export default function PropertyForm() {
   });
 
   const [listingType, setListingType] = useState<ListingType>((initial?.listing_type as ListingType) || "sale");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -78,6 +91,8 @@ export default function PropertyForm() {
     }
 
     const flagReasons = scanForContactLeak(title, description);
+    const finishing = form.get("finishing") ? (String(form.get("finishing")) as FinishingLevel) : null;
+    const selectedPaymentMethod = paymentMethod || null;
 
     const { data: property, error: insertError } = await supabase
       .from("properties")
@@ -95,6 +110,16 @@ export default function PropertyForm() {
         bedrooms: form.get("bedrooms") ? Number(form.get("bedrooms")) : null,
         bathrooms: form.get("bathrooms") ? Number(form.get("bathrooms")) : null,
         area_sqm: form.get("area_sqm") ? Number(form.get("area_sqm")) : null,
+        finishing,
+        payment_method: selectedPaymentMethod,
+        down_payment_percent:
+          selectedPaymentMethod === "installments" && form.get("down_payment_percent")
+            ? Number(form.get("down_payment_percent"))
+            : null,
+        installment_years:
+          selectedPaymentMethod === "installments" && form.get("installment_years")
+            ? Number(form.get("installment_years"))
+            : null,
         flagged: flagReasons.length > 0,
         flag_reasons: flagReasons,
       })
@@ -147,108 +172,160 @@ export default function PropertyForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <label className="block text-sm">
-          {t.propertyForm.listingType} *
-          <select
-            value={listingType}
-            onChange={(e) => setListingType(e.target.value as ListingType)}
-            className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-          >
-            <option value="sale">{t.listings.forSale}</option>
-            <option value="rent">{t.listings.forRent}</option>
-          </select>
-        </label>
-        <label className="block text-sm">
-          {t.propertyForm.propertyType} *
-          <select name="property_type" defaultValue={initial?.property_type || "apartment"} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
-            {PROPERTY_TYPES.map((pt) => (
-              <option key={pt} value={pt}>
-                {t.propertyTypes[pt]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
-      <label className="block text-sm">
-        {t.propertyForm.title} *
-        <input
-          name="title"
-          required
-          defaultValue={initial?.title || ""}
-          className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-          placeholder={t.propertyForm.titlePlaceholder}
-        />
-      </label>
-
-      <label className="block text-sm">
-        {t.propertyForm.description} *
-        <textarea
-          name="description"
-          required
-          rows={5}
-          defaultValue={initial?.description || ""}
-          className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-          placeholder={t.propertyForm.descriptionPlaceholder}
-        />
-      </label>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <label className="block text-sm">
-          {t.propertyForm.priceEgp} *
-          <input name="price" type="number" required min={0} defaultValue={initial?.price || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
-        </label>
-        {listingType === "rent" && (
+      <Section title={t.propertyForm.sectionBasics}>
+        <div className="grid grid-cols-2 gap-4">
           <label className="block text-sm">
-            {t.propertyForm.per}
-            <select name="rent_period" defaultValue="month" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
-              <option value="month">{t.propertyForm.month}</option>
-              <option value="year">{t.propertyForm.year}</option>
-              <option value="day">{t.propertyForm.day}</option>
+            {t.propertyForm.listingType} *
+            <select
+              value={listingType}
+              onChange={(e) => setListingType(e.target.value as ListingType)}
+              className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+            >
+              <option value="sale">{t.listings.forSale}</option>
+              <option value="rent">{t.listings.forRent}</option>
             </select>
           </label>
+          <label className="block text-sm">
+            {t.propertyForm.propertyType} *
+            <select name="property_type" defaultValue={initial?.property_type || "apartment"} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+              {PROPERTY_TYPES.map((pt) => (
+                <option key={pt} value={pt}>
+                  {t.propertyTypes[pt]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <label className="block text-sm">
+          {t.propertyForm.title} *
+          <input
+            name="title"
+            required
+            defaultValue={initial?.title || ""}
+            className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+            placeholder={t.propertyForm.titlePlaceholder}
+          />
+        </label>
+
+        <label className="block text-sm">
+          {t.propertyForm.description} *
+          <textarea
+            name="description"
+            required
+            rows={5}
+            defaultValue={initial?.description || ""}
+            className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+            placeholder={t.propertyForm.descriptionPlaceholder}
+          />
+        </label>
+      </Section>
+
+      <Section title={t.propertyForm.sectionLocation}>
+        <div className="grid grid-cols-2 gap-4">
+          <label className="block text-sm">
+            {t.propertyForm.city} *
+            <input name="city" required defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.area} *
+            <input name="area" required defaultValue={initial?.area || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+        </div>
+      </Section>
+
+      <Section title={t.propertyForm.sectionPrice}>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <label className="block text-sm">
+            {t.propertyForm.priceEgp} *
+            <input name="price" type="number" required min={0} defaultValue={initial?.price || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          {listingType === "rent" && (
+            <label className="block text-sm">
+              {t.propertyForm.per}
+              <select name="rent_period" defaultValue="month" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+                <option value="month">{t.propertyForm.month}</option>
+                <option value="year">{t.propertyForm.year}</option>
+                <option value="day">{t.propertyForm.day}</option>
+              </select>
+            </label>
+          )}
+          <label className="block text-sm">
+            {t.propertyForm.paymentMethod}
+            <select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}
+              className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+            >
+              <option value="">{t.propertyForm.paymentMethodUnspecified}</option>
+              {PAYMENT_METHODS.map((pm) => (
+                <option key={pm} value={pm}>
+                  {t.paymentMethods[pm]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {paymentMethod === "installments" && (
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block text-sm">
+              {t.propertyForm.downPaymentPercent}
+              <input name="down_payment_percent" type="number" min={0} max={100} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+            </label>
+            <label className="block text-sm">
+              {t.propertyForm.installmentYears}
+              <input name="installment_years" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+            </label>
+          </div>
         )}
-        <label className="block text-sm">
-          {t.propertyForm.bedrooms}
-          <input name="bedrooms" type="number" min={0} defaultValue={initial?.bedrooms || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          {t.propertyForm.bathrooms}
-          <input name="bathrooms" type="number" min={0} defaultValue={initial?.bathrooms || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          {t.propertyForm.areaSqm}
-          <input name="area_sqm" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
-        </label>
-      </div>
+      </Section>
 
-      <div className="grid grid-cols-2 gap-4">
-        <label className="block text-sm">
-          {t.propertyForm.city} *
-          <input name="city" required defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
-        </label>
-        <label className="block text-sm">
-          {t.propertyForm.area} *
-          <input name="area" required defaultValue={initial?.area || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
-        </label>
-      </div>
+      <Section title={t.propertyForm.sectionDetails}>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <label className="block text-sm">
+            {t.propertyForm.bedrooms}
+            <input name="bedrooms" type="number" min={0} defaultValue={initial?.bedrooms || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.bathrooms}
+            <input name="bathrooms" type="number" min={0} defaultValue={initial?.bathrooms || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.areaSqm}
+            <input name="area_sqm" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.finishing}
+            <select name="finishing" defaultValue="" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+              <option value="">{t.propertyForm.finishingUnspecified}</option>
+              {FINISHING_LEVELS.map((f) => (
+                <option key={f} value={f}>
+                  {t.finishingLevels[f]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </Section>
 
-      <label className="block text-sm">
-        {interpolate(t.propertyForm.photos, { max: MAX_PHOTOS })}
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => setPhotos(Array.from(e.target.files || []).slice(0, MAX_PHOTOS))}
-          className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-        />
-        <span className="text-xs text-[var(--muted)]">{t.propertyForm.photosHint}</span>
-      </label>
+      <Section title={t.propertyForm.sectionPhotos}>
+        <label className="block text-sm">
+          {interpolate(t.propertyForm.photos, { max: MAX_PHOTOS })}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => setPhotos(Array.from(e.target.files || []).slice(0, MAX_PHOTOS))}
+            className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+          />
+          <span className="text-xs text-[var(--muted)]">{t.propertyForm.photosHint}</span>
+        </label>
+      </Section>
 
-      <fieldset className="rounded-lg border border-[var(--border)] p-4">
-        <legend className="px-1 text-sm font-medium">{t.propertyForm.contactLegend}</legend>
-        <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <Section title={t.propertyForm.sectionContact}>
+        <p className="text-xs text-[var(--muted)]">{t.propertyForm.contactLegend}</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block text-sm">
             {t.propertyForm.contactName} *
             <input name="contact_name" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
@@ -262,7 +339,7 @@ export default function PropertyForm() {
             <input name="contact_email" type="email" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
         </div>
-      </fieldset>
+      </Section>
 
       {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 

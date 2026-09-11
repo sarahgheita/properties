@@ -1,4 +1,4 @@
-import type { PropertyType } from "@/lib/database.types";
+import type { FinishingLevel, PaymentMethod, PropertyType } from "@/lib/database.types";
 
 export const locales = ["en", "ar"] as const;
 export type Locale = (typeof locales)[number];
@@ -22,6 +22,17 @@ const en = {
     land: "Land",
     other: "Other",
   } satisfies Record<PropertyType, string>,
+  finishingLevels: {
+    super_lux: "Super Lux",
+    finished: "Finished",
+    semi_finished: "Semi-finished",
+    core_shell: "Core & shell",
+    not_finished: "Not finished",
+  } satisfies Record<FinishingLevel, string>,
+  paymentMethods: {
+    cash: "Cash",
+    installments: "Installments",
+  } satisfies Record<PaymentMethod, string>,
   nav: {
     browse: "Browse Properties",
     lookingFor: "Looking For",
@@ -83,6 +94,12 @@ const en = {
   },
   propertyForm: {
     reviewNotice: "Fill in the details below. An agent reviews every submission before it's published.",
+    sectionBasics: "Basics",
+    sectionLocation: "Location",
+    sectionPrice: "Price & Payment",
+    sectionDetails: "Details",
+    sectionPhotos: "Photos",
+    sectionContact: "Contact",
     listingType: "Listing type",
     propertyType: "Property type",
     title: "Title",
@@ -95,6 +112,12 @@ const en = {
     month: "Month",
     year: "Year",
     day: "Day",
+    paymentMethod: "Payment method",
+    paymentMethodUnspecified: "Not specified",
+    downPaymentPercent: "Down payment (%)",
+    installmentYears: "Installment years",
+    finishing: "Finishing",
+    finishingUnspecified: "Not specified",
     bedrooms: "Bedrooms",
     bathrooms: "Bathrooms",
     areaSqm: "Area (m²)",
@@ -240,6 +263,17 @@ const ar: Dictionary = {
     land: "أرض",
     other: "أخرى",
   },
+  finishingLevels: {
+    super_lux: "سوبر لوكس",
+    finished: "متشطب",
+    semi_finished: "نص تشطيب",
+    core_shell: "على المحارة",
+    not_finished: "بدون تشطيب",
+  },
+  paymentMethods: {
+    cash: "كاش",
+    installments: "تقسيط",
+  },
   nav: {
     browse: "تصفح العقارات",
     lookingFor: "أبحث عن",
@@ -300,6 +334,12 @@ const ar: Dictionary = {
   },
   propertyForm: {
     reviewNotice: "املأ البيانات أدناه. يقوم الوسيط بمراجعة كل إعلان قبل نشره.",
+    sectionBasics: "المعلومات الأساسية",
+    sectionLocation: "الموقع",
+    sectionPrice: "السعر والدفع",
+    sectionDetails: "تفاصيل إضافية",
+    sectionPhotos: "الصور",
+    sectionContact: "التواصل",
     listingType: "نوع الإعلان",
     propertyType: "نوع العقار",
     title: "العنوان",
@@ -312,6 +352,12 @@ const ar: Dictionary = {
     month: "شهر",
     year: "سنة",
     day: "يوم",
+    paymentMethod: "طريقة الدفع",
+    paymentMethodUnspecified: "غير محدد",
+    downPaymentPercent: "المقدم (%)",
+    installmentYears: "سنوات التقسيط",
+    finishing: "التشطيب",
+    finishingUnspecified: "غير محدد",
     bedrooms: "غرف النوم",
     bathrooms: "الحمامات",
     areaSqm: "المساحة (م²)",

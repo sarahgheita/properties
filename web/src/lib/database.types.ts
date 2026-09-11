@@ -17,6 +17,8 @@ export type PropertyType =
   | "land"
   | "other";
 export type InquiryStatus = "new" | "contacted" | "closed";
+export type FinishingLevel = "super_lux" | "finished" | "semi_finished" | "core_shell" | "not_finished";
+export type PaymentMethod = "cash" | "installments";
 
 export interface Database {
   public: {
@@ -52,6 +54,10 @@ export interface Database {
           bedrooms: number | null;
           bathrooms: number | null;
           area_sqm: number | null;
+          finishing: FinishingLevel | null;
+          payment_method: PaymentMethod | null;
+          down_payment_percent: number | null;
+          installment_years: number | null;
           status: ModerationStatus;
           rejection_reason: string | null;
           reviewed_by: string | null;
