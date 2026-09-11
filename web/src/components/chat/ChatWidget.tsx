@@ -9,7 +9,7 @@ interface Message {
   text: string;
 }
 
-interface Proposal {
+interface RequestProposal {
   listing_type?: "rent" | "sale";
   property_type?: string;
   description?: string;
@@ -19,6 +19,22 @@ interface Proposal {
   area?: string;
   bedrooms_min?: number;
 }
+
+interface ListingProposal {
+  listing_type?: "sale" | "rent";
+  property_type?: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  city?: string;
+  area?: string;
+  bedrooms?: number;
+  bathrooms?: number;
+}
+
+type Proposal =
+  | { type: "request"; data: RequestProposal }
+  | { type: "listing"; data: ListingProposal };
 
 export default function ChatWidget() {
   const router = useRouter();
@@ -67,8 +83,8 @@ export default function ChatWidget() {
       if (data.text) {
         setMessages((prev) => [...prev, { role: "model", text: data.text }]);
       }
-      if (data.proposal) {
-        setProposal(data.proposal);
+      if (data.proposalType && data.proposal) {
+        setProposal({ type: data.proposalType, data: data.proposal });
       }
     } catch {
       setError(t.chat.unreachable);
@@ -79,19 +95,40 @@ export default function ChatWidget() {
 
   function submitProposal() {
     if (!proposal) return;
-    const draft: Record<string, string> = {};
-    if (proposal.listing_type) draft.listing_type = proposal.listing_type;
-    if (proposal.property_type) draft.property_type = proposal.property_type;
-    if (proposal.description) draft.description = proposal.description;
-    if (proposal.budget_min != null) draft.budget_min = String(proposal.budget_min);
-    if (proposal.budget_max != null) draft.budget_max = String(proposal.budget_max);
-    if (proposal.city) draft.city = proposal.city;
-    if (proposal.area) draft.area = proposal.area;
-    if (proposal.bedrooms_min != null) draft.bedrooms_min = String(proposal.bedrooms_min);
 
-    sessionStorage.setItem("chatRequestDraft", JSON.stringify(draft));
+    if (proposal.type === "request") {
+      const p = proposal.data;
+      const draft: Record<string, string> = {};
+      if (p.listing_type) draft.listing_type = p.listing_type;
+      if (p.property_type) draft.property_type = p.property_type;
+      if (p.description) draft.description = p.description;
+      if (p.budget_min != null) draft.budget_min = String(p.budget_min);
+      if (p.budget_max != null) draft.budget_max = String(p.budget_max);
+      if (p.city) draft.city = p.city;
+      if (p.area) draft.area = p.area;
+      if (p.bedrooms_min != null) draft.bedrooms_min = String(p.bedrooms_min);
+
+      sessionStorage.setItem("chatRequestDraft", JSON.stringify(draft));
+      setOpen(false);
+      router.push("/requests/new");
+      return;
+    }
+
+    const p = proposal.data;
+    const draft: Record<string, string> = {};
+    if (p.listing_type) draft.listing_type = p.listing_type;
+    if (p.property_type) draft.property_type = p.property_type;
+    if (p.title) draft.title = p.title;
+    if (p.description) draft.description = p.description;
+    if (p.price != null) draft.price = String(p.price);
+    if (p.city) draft.city = p.city;
+    if (p.area) draft.area = p.area;
+    if (p.bedrooms != null) draft.bedrooms = String(p.bedrooms);
+    if (p.bathrooms != null) draft.bathrooms = String(p.bathrooms);
+
+    sessionStorage.setItem("chatListingDraft", JSON.stringify(draft));
     setOpen(false);
-    router.push("/requests/new");
+    router.push("/listings/new");
   }
 
   return (
@@ -119,29 +156,31 @@ export default function ChatWidget() {
             {loading && <div className="max-w-[85%] rounded-lg bg-[var(--background)] px-3 py-2 text-[var(--muted)]">…</div>}
             {error && <p className="text-[var(--danger)]">{error}</p>}
 
-            {proposal && (
+            {proposal?.type === "request" && (
               <div className="rounded-lg border border-[var(--brand)] bg-[var(--brand)]/5 p-3">
                 <p className="font-medium">{t.chat.proposalTitle}</p>
                 <ul className="mt-1 space-y-0.5 text-xs text-[var(--foreground)]">
-                  {proposal.listing_type && <li>{proposal.listing_type === "sale" ? t.chat.wantsToBuy : t.chat.wantsToRent}</li>}
-                  {proposal.property_type && (
+                  {proposal.data.listing_type && (
+                    <li>{proposal.data.listing_type === "sale" ? t.chat.wantsToBuy : t.chat.wantsToRent}</li>
+                  )}
+                  {proposal.data.property_type && (
                     <li>
-                      {t.chat.type} {t.propertyTypes[proposal.property_type as keyof typeof t.propertyTypes] || proposal.property_type}
+                      {t.chat.type} {t.propertyTypes[proposal.data.property_type as keyof typeof t.propertyTypes] || proposal.data.property_type}
                     </li>
                   )}
-                  {(proposal.city || proposal.area) && (
+                  {(proposal.data.city || proposal.data.area) && (
                     <li>
-                      {t.chat.areaLabel} {[proposal.area, proposal.city].filter(Boolean).join(", ")}
+                      {t.chat.areaLabel} {[proposal.data.area, proposal.data.city].filter(Boolean).join(", ")}
                     </li>
                   )}
-                  {(proposal.budget_min || proposal.budget_max) && (
+                  {(proposal.data.budget_min || proposal.data.budget_max) && (
                     <li>
-                      {t.chat.budgetLabel} {proposal.budget_min ?? "?"} – {proposal.budget_max ?? "?"} EGP
+                      {t.chat.budgetLabel} {proposal.data.budget_min ?? "?"} – {proposal.data.budget_max ?? "?"} EGP
                     </li>
                   )}
-                  {proposal.bedrooms_min && (
+                  {proposal.data.bedrooms_min && (
                     <li>
-                      {proposal.bedrooms_min}
+                      {proposal.data.bedrooms_min}
                       {t.chat.plusBedrooms}
                     </li>
                   )}
@@ -151,6 +190,43 @@ export default function ChatWidget() {
                   className="mt-2 rounded-md bg-[var(--brand)] px-3 py-1.5 text-xs font-medium text-white"
                 >
                   {t.chat.reviewAndSubmit}
+                </button>
+              </div>
+            )}
+
+            {proposal?.type === "listing" && (
+              <div className="rounded-lg border border-[var(--brand)] bg-[var(--brand)]/5 p-3">
+                <p className="font-medium">{t.chat.proposalTitle}</p>
+                <ul className="mt-1 space-y-0.5 text-xs text-[var(--foreground)]">
+                  {proposal.data.listing_type && (
+                    <li>{proposal.data.listing_type === "sale" ? t.chat.listingForSale : t.chat.listingForRent}</li>
+                  )}
+                  {proposal.data.title && (
+                    <li>
+                      {t.chat.titleLabel} {proposal.data.title}
+                    </li>
+                  )}
+                  {proposal.data.property_type && (
+                    <li>
+                      {t.chat.type} {t.propertyTypes[proposal.data.property_type as keyof typeof t.propertyTypes] || proposal.data.property_type}
+                    </li>
+                  )}
+                  {(proposal.data.city || proposal.data.area) && (
+                    <li>
+                      {t.chat.areaLabel} {[proposal.data.area, proposal.data.city].filter(Boolean).join(", ")}
+                    </li>
+                  )}
+                  {proposal.data.price != null && (
+                    <li>
+                      {t.chat.priceLabel} {proposal.data.price} EGP
+                    </li>
+                  )}
+                </ul>
+                <button
+                  onClick={submitProposal}
+                  className="mt-2 rounded-md bg-[var(--brand)] px-3 py-1.5 text-xs font-medium text-white"
+                >
+                  {t.chat.reviewAndSubmitListing}
                 </button>
               </div>
             )}

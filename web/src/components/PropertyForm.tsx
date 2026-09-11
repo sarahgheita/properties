@@ -25,7 +25,22 @@ const MAX_PHOTOS = 10;
 export default function PropertyForm() {
   const router = useRouter();
   const { t, interpolate } = useLocale();
-  const [listingType, setListingType] = useState<ListingType>("sale");
+
+  // If the AI chat assistant already gathered listing details, it stashes them here before
+  // sending the user to this page — pick them up once so the form arrives pre-filled.
+  const [initial] = useState<Partial<Record<string, string>> | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = sessionStorage.getItem("chatListingDraft");
+      if (!raw) return null;
+      sessionStorage.removeItem("chatListingDraft");
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  });
+
+  const [listingType, setListingType] = useState<ListingType>((initial?.listing_type as ListingType) || "sale");
   const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -146,7 +161,7 @@ export default function PropertyForm() {
         </label>
         <label className="block text-sm">
           {t.propertyForm.propertyType} *
-          <select name="property_type" defaultValue="apartment" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+          <select name="property_type" defaultValue={initial?.property_type || "apartment"} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
             {PROPERTY_TYPES.map((pt) => (
               <option key={pt} value={pt}>
                 {t.propertyTypes[pt]}
@@ -158,7 +173,13 @@ export default function PropertyForm() {
 
       <label className="block text-sm">
         {t.propertyForm.title} *
-        <input name="title" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" placeholder={t.propertyForm.titlePlaceholder} />
+        <input
+          name="title"
+          required
+          defaultValue={initial?.title || ""}
+          className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+          placeholder={t.propertyForm.titlePlaceholder}
+        />
       </label>
 
       <label className="block text-sm">
@@ -167,6 +188,7 @@ export default function PropertyForm() {
           name="description"
           required
           rows={5}
+          defaultValue={initial?.description || ""}
           className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
           placeholder={t.propertyForm.descriptionPlaceholder}
         />
@@ -175,7 +197,7 @@ export default function PropertyForm() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <label className="block text-sm">
           {t.propertyForm.priceEgp} *
-          <input name="price" type="number" required min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          <input name="price" type="number" required min={0} defaultValue={initial?.price || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         {listingType === "rent" && (
           <label className="block text-sm">
@@ -189,11 +211,11 @@ export default function PropertyForm() {
         )}
         <label className="block text-sm">
           {t.propertyForm.bedrooms}
-          <input name="bedrooms" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          <input name="bedrooms" type="number" min={0} defaultValue={initial?.bedrooms || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
           {t.propertyForm.bathrooms}
-          <input name="bathrooms" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          <input name="bathrooms" type="number" min={0} defaultValue={initial?.bathrooms || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
           {t.propertyForm.areaSqm}
@@ -204,11 +226,11 @@ export default function PropertyForm() {
       <div className="grid grid-cols-2 gap-4">
         <label className="block text-sm">
           {t.propertyForm.city} *
-          <input name="city" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          <input name="city" required defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
           {t.propertyForm.area} *
-          <input name="area" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          <input name="area" required defaultValue={initial?.area || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
       </div>
 
