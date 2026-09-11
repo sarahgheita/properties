@@ -106,7 +106,7 @@ export default async function PropertyDetailPage({
                   <dd className="font-medium">{t.finishingLevels[property.finishing]}</dd>
                 </div>
               )}
-              {property.payment_method && (
+              {property.payment_method && property.listing_type === "sale" && (
                 <div>
                   <dt className="text-[var(--muted)]">{t.listingDetail.paymentMethod}</dt>
                   <dd className="font-medium">

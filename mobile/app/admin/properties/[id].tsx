@@ -74,7 +74,7 @@ export default function AdminPropertyReview() {
           property.bedrooms ? `${property.bedrooms} bed` : null,
           property.bathrooms ? `${property.bathrooms} bath` : null,
           property.finishing ? `Finishing: ${property.finishing.replace("_", " ")}` : null,
-          property.payment_method ? `Payment: ${property.payment_method}` : null,
+          property.payment_method && property.listing_type === "sale" ? `Payment: ${property.payment_method}` : null,
         ]
           .filter(Boolean)
           .join(" · ")}

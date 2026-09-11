@@ -110,7 +110,7 @@ export default function ListingDetailScreen() {
         <Fact label="Bathrooms" value={property.bathrooms ?? "—"} />
         <Fact label="Area" value={property.area_sqm ? `${property.area_sqm} m²` : "—"} />
         {property.finishing && <Fact label="Finishing" value={FINISHING_LABELS[property.finishing] || property.finishing} />}
-        {property.payment_method && (
+        {property.payment_method && property.listing_type === "sale" && (
           <Fact
             label="Payment"
             value={

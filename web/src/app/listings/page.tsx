@@ -94,14 +94,16 @@ export default async function ListingsPage({
             </option>
           ))}
         </select>
-        <select name="payment" defaultValue={paymentMethod || ""} className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm">
-          <option value="">{t.listings.anyPayment}</option>
-          {PAYMENT_METHODS.map((pm) => (
-            <option key={pm} value={pm}>
-              {t.paymentMethods[pm]}
-            </option>
-          ))}
-        </select>
+        {listingType !== "rent" && (
+          <select name="payment" defaultValue={paymentMethod || ""} className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm">
+            <option value="">{t.listings.anyPayment}</option>
+            {PAYMENT_METHODS.map((pm) => (
+              <option key={pm} value={pm}>
+                {t.paymentMethods[pm]}
+              </option>
+            ))}
+          </select>
+        )}
         <button type="submit" className="rounded-md bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white">
           {t.listings.filter}
         </button>

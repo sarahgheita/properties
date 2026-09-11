@@ -49,7 +49,7 @@ export default async function AdminPropertyReviewPage({
             property.bathrooms ? `${property.bathrooms} bath` : null,
             property.area_sqm ? `${property.area_sqm} m²` : null,
             property.finishing ? `Finishing: ${property.finishing.replace("_", " ")}` : null,
-            property.payment_method
+            property.payment_method && property.listing_type === "sale"
               ? `Payment: ${property.payment_method}${
                   property.payment_method === "installments" && property.down_payment_percent != null
                     ? ` (${property.down_payment_percent}% down, ${property.installment_years ?? "?"} yr)`
