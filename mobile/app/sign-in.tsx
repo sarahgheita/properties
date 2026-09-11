@@ -9,16 +9,33 @@ import Button from "../components/Button";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
+  const [mode, setMode] = useState<"signIn" | "signUp" | "forgotPassword">("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmationSent, setConfirmationSent] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   async function handleSubmit() {
     setError(null);
     setLoading(true);
+
+    if (mode === "forgotPassword") {
+      // The reset link opens in a browser and lands on the web app (no deep-link setup needed
+      // here) — the user sets their new password there, then comes back and signs in here.
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        API_BASE_URL ? { redirectTo: `${API_BASE_URL}/auth/confirm?next=${encodeURIComponent("/reset-password")}` } : undefined,
+      );
+      setLoading(false);
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+      setResetSent(true);
+      return;
+    }
 
     if (mode === "signIn") {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
@@ -62,27 +79,51 @@ export default function SignInScreen() {
     );
   }
 
+  if (resetSent) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Reset your password</Text>
+        <Text style={styles.subtitle}>Check your email for a password reset link. Open it, set a new password, then come back here to sign in.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{mode === "signIn" ? "Sign in" : "Create account"}</Text>
+      <Text style={styles.title}>
+        {mode === "signIn" ? "Sign in" : mode === "signUp" ? "Create account" : "Reset your password"}
+      </Text>
       <Text style={styles.subtitle}>
-        {mode === "signIn" ? "Sign in with your email and password." : "Create an account to post a property or a request."}
+        {mode === "signIn"
+          ? "Sign in with your email and password."
+          : mode === "signUp"
+            ? "Create an account to post a property or a request."
+            : "Enter your email and we'll send you a link to reset it."}
       </Text>
 
       <View style={styles.form}>
         <TextField label="Email" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
-        <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} />
+        {mode !== "forgotPassword" && (
+          <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} />
+        )}
+        {mode === "signIn" && (
+          <Button title="Forgot password?" variant="outline" onPress={() => setMode("forgotPassword")} />
+        )}
         {error && <Text style={styles.error}>{error}</Text>}
         <Button
-          title={mode === "signIn" ? "Sign in" : "Create account"}
+          title={mode === "signIn" ? "Sign in" : mode === "signUp" ? "Create account" : "Send reset link"}
           onPress={handleSubmit}
           loading={loading}
         />
-        <Button
-          title={mode === "signIn" ? "Don't have an account? Create one" : "Already have an account? Sign in"}
-          variant="outline"
-          onPress={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
-        />
+        {mode === "forgotPassword" ? (
+          <Button title="Back to sign in" variant="outline" onPress={() => setMode("signIn")} />
+        ) : (
+          <Button
+            title={mode === "signIn" ? "Don't have an account? Create one" : "Already have an account? Sign in"}
+            variant="outline"
+            onPress={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
+          />
+        )}
       </View>
     </View>
   );
