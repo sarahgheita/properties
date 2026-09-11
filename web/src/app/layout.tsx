@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Cairo } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import ChatWidget from "@/components/chat/ChatWidget";
+import AuthRecoveryRedirect from "@/components/AuthRecoveryRedirect";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { getServerLocale } from "@/lib/i18n/locale";
 import { dir, getDictionary } from "@/lib/i18n/dictionaries";
@@ -43,6 +44,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <LocaleProvider locale={locale}>
+          <AuthRecoveryRedirect />
           <NavBar locale={locale} />
           <main className="flex-1">{children}</main>
           <footer className="border-t border-[var(--border)] py-6 text-center text-sm text-[var(--muted)]">

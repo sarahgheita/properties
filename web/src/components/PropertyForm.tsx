@@ -93,7 +93,7 @@ export default function PropertyForm() {
 
     const flagReasons = scanForContactLeak(title, description);
     const finishing = form.get("finishing") ? (String(form.get("finishing")) as FinishingLevel) : null;
-    const selectedPaymentMethod = paymentMethod || null;
+    const selectedPaymentMethod = listingType === "sale" ? paymentMethod || null : null;
 
     const { data: property, error: insertError } = await supabase
       .from("properties")

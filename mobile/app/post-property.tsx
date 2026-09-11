@@ -89,9 +89,15 @@ export default function PostPropertyScreen() {
         bathrooms: bathrooms ? Number(bathrooms) : null,
         area_sqm: areaSqm ? Number(areaSqm) : null,
         finishing: finishing || null,
-        payment_method: paymentMethod || null,
-        down_payment_percent: paymentMethod === "installments" && downPaymentPercent ? Number(downPaymentPercent) : null,
-        installment_years: paymentMethod === "installments" && installmentYears ? Number(installmentYears) : null,
+        payment_method: listingType === "sale" ? paymentMethod || null : null,
+        down_payment_percent:
+          listingType === "sale" && paymentMethod === "installments" && downPaymentPercent
+            ? Number(downPaymentPercent)
+            : null,
+        installment_years:
+          listingType === "sale" && paymentMethod === "installments" && installmentYears
+            ? Number(installmentYears)
+            : null,
         flagged: flagReasons.length > 0,
         flag_reasons: flagReasons,
       })

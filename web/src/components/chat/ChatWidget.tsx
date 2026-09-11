@@ -129,7 +129,7 @@ export default function ChatWidget() {
     if (p.bedrooms != null) draft.bedrooms = String(p.bedrooms);
     if (p.bathrooms != null) draft.bathrooms = String(p.bathrooms);
     if (p.finishing) draft.finishing = p.finishing;
-    if (p.payment_method) draft.payment_method = p.payment_method;
+    if (p.payment_method && p.listing_type !== "rent") draft.payment_method = p.payment_method;
 
     sessionStorage.setItem("chatListingDraft", JSON.stringify(draft));
     setOpen(false);
@@ -229,7 +229,7 @@ export default function ChatWidget() {
                   {proposal.data.finishing && (
                     <li>{t.finishingLevels[proposal.data.finishing as keyof typeof t.finishingLevels] || proposal.data.finishing}</li>
                   )}
-                  {proposal.data.payment_method && (
+                  {proposal.data.payment_method && proposal.data.listing_type !== "rent" && (
                     <li>{t.paymentMethods[proposal.data.payment_method as keyof typeof t.paymentMethods] || proposal.data.payment_method}</li>
                   )}
                 </ul>

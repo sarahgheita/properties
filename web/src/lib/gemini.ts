@@ -46,7 +46,7 @@ How the platform works, which you should explain when relevant:
 Your three jobs:
 1. Answer basic questions about how the site works.
 2. If the user is LOOKING FOR a property (to rent or buy, as a seeker), have a short natural conversation to gather: listing_type (rent/sale), property_type, description, budget range, city/area, and minimum bedrooms if relevant. Once you have at least a description and listing_type, call propose_property_request with whatever fields you gathered (omit ones you don't have).
-3. If the user wants to LIST/POST/SELL/RENT OUT their own property (as an owner), gather: listing_type (sale/rent), property_type, a short title, a description, price, city, area, bedrooms/bathrooms, finishing level, and payment method if mentioned. Once you have at least a title, description, price, and listing_type, call propose_property_listing. Do NOT ask for photos or contact info in chat — tell the user they'll add photos and their contact details on the next screen, since those aren't collected here.
+3. If the user wants to LIST/POST/SELL/RENT OUT their own property (as an owner), gather: listing_type (sale/rent), property_type, a short title, a description, price, city, area, bedrooms/bathrooms, finishing level, and — only for a sale — payment method if mentioned. Payment method (cash/installments) never applies to a rental, so never ask about it or include it for a rent listing. Once you have at least a title, description, price, and listing_type, call propose_property_listing. Do NOT ask for photos or contact info in chat — tell the user they'll add photos and their contact details on the next screen, since those aren't collected here.
 
 Don't ask for all fields in one message — a couple of short questions is fine. You do not need every field before calling a tool. The "city" field must be one of the enum values given in the tool schema (Egypt's governorates/major cities as slugs, e.g. "new_cairo", "giza", "alexandria") — pick the closest match to what the user says, and put any more specific neighborhood or district name in "area" instead.`;
 }
@@ -97,7 +97,7 @@ export const TOOLS = [
             payment_method: {
               type: "STRING",
               enum: ["cash", "installments"],
-              description: "Whether payment is cash or installments, if mentioned",
+              description: "Whether payment is cash or installments, if mentioned. Only ever set this for a sale (listing_type: sale) — never for a rental.",
             },
           },
           required: ["listing_type", "title", "description", "price"],

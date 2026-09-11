@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { useLocale } from "@/components/LocaleProvider";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
 
   const [checking, setChecking] = useState(true);
@@ -20,11 +22,27 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+
+    async function establishSession() {
+      // Supabase's hosted verify link normally hands off a session via the URL hash, which the
+      // client library auto-detects on load. Some project configurations instead send a
+      // token_hash + type query pair, which requires an explicit verifyOtp() call — handle both
+      // rather than assuming one.
+      const tokenHash = searchParams.get("token_hash");
+      const type = searchParams.get("type") as EmailOtpType | null;
+      if (tokenHash && type) {
+        await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setHasSession(!!user);
       setChecking(false);
-    });
-  }, []);
+    }
+
+    establishSession();
+  }, [searchParams]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -114,5 +132,13 @@ export default function ResetPasswordPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
