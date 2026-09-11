@@ -75,10 +75,27 @@ export default function AdminPropertyReview() {
           property.bathrooms ? `${property.bathrooms} bath` : null,
           property.finishing ? `Finishing: ${property.finishing.replace("_", " ")}` : null,
           property.payment_method && property.listing_type === "sale" ? `Payment: ${property.payment_method}` : null,
+          property.furnishing ? `Furnishing: ${property.furnishing.replace("_", " ")}` : null,
+          property.floor_number != null ? `Floor ${property.floor_number}` : null,
+          property.view ? `View: ${property.view}` : null,
         ]
           .filter(Boolean)
           .join(" · ")}
       </Text>
+      {(property.compound_name || property.developer_name || property.delivery_date) && (
+        <Text style={styles.muted}>
+          {[
+            property.compound_name ? `Compound: ${property.compound_name}` : null,
+            property.developer_name ? `Developer: ${property.developer_name}` : null,
+            property.delivery_date ? `Delivery: ${property.delivery_date}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </Text>
+      )}
+      {property.amenities && property.amenities.length > 0 && (
+        <Text style={styles.muted}>Amenities: {property.amenities.join(", ")}</Text>
+      )}
       <Text style={styles.desc}>{property.description}</Text>
 
       {images.length > 0 && (

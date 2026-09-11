@@ -56,10 +56,25 @@ export default async function AdminPropertyReviewPage({
                     : ""
                 }`
               : null,
+            property.furnishing ? `Furnishing: ${property.furnishing.replace("_", " ")}` : null,
+            property.floor_number != null ? `Floor ${property.floor_number}` : null,
+            property.view ? `View: ${property.view}` : null,
           ]
             .filter(Boolean)
             .join(" · ")}
         </p>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          {[
+            property.compound_name ? `Compound: ${property.compound_name}` : null,
+            property.developer_name ? `Developer: ${property.developer_name}` : null,
+            property.delivery_date ? `Delivery: ${property.delivery_date}` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        {property.amenities && property.amenities.length > 0 && (
+          <p className="mt-1 text-xs text-[var(--muted)]">Amenities: {property.amenities.join(", ")}</p>
+        )}
         <p className="mt-4 whitespace-pre-line text-sm">{property.description}</p>
 
         {images && images.length > 0 && (

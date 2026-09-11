@@ -124,7 +124,56 @@ export default async function PropertyDetailPage({
                   </dd>
                 </div>
               )}
+              {property.furnishing && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.furnishing}</dt>
+                  <dd className="font-medium">{t.furnishingStatuses[property.furnishing]}</dd>
+                </div>
+              )}
+              {property.floor_number != null && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.floorNumber}</dt>
+                  <dd className="font-medium">{property.floor_number}</dd>
+                </div>
+              )}
+              {property.view && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.view}</dt>
+                  <dd className="font-medium">{t.propertyViews[property.view]}</dd>
+                </div>
+              )}
+              {property.compound_name && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.compoundName}</dt>
+                  <dd className="font-medium">{property.compound_name}</dd>
+                </div>
+              )}
+              {property.developer_name && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.developerName}</dt>
+                  <dd className="font-medium">{property.developer_name}</dd>
+                </div>
+              )}
+              {property.delivery_date && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.deliveryDate}</dt>
+                  <dd className="font-medium">{property.delivery_date}</dd>
+                </div>
+              )}
             </dl>
+
+            {property.amenities && property.amenities.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-[var(--muted)]">{t.listingDetail.amenities}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {property.amenities.map((a) => (
+                    <span key={a} className="rounded-full bg-[var(--surface)] px-2.5 py-1 text-xs">
+                      {t.amenityOptions[a as keyof typeof t.amenityOptions] || a}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-6 whitespace-pre-line text-sm leading-relaxed">{property.description}</div>
           </div>

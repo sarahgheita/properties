@@ -67,6 +67,15 @@ export default function SignInScreen() {
       return;
     }
 
+    // Supabase deliberately returns a success-shaped response (no error) when signUp() is called
+    // with an email that already has a confirmed account, to avoid leaking which emails are
+    // registered — it just doesn't send an email. The documented way to detect this case
+    // client-side is an empty identities array on the returned user.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError("An account with this email already exists. Try signing in, or use \"Forgot password?\" if you don't remember your password.");
+      return;
+    }
+
     setConfirmationSent(true);
   }
 

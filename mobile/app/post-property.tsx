@@ -9,7 +9,14 @@ import { colors } from "../lib/theme";
 import TextField from "../components/TextField";
 import Button from "../components/Button";
 import CityPicker from "../components/CityPicker";
-import type { FinishingLevel, ListingType, PaymentMethod, PropertyType } from "../lib/database.types";
+import type {
+  FinishingLevel,
+  FurnishingStatus,
+  ListingType,
+  PaymentMethod,
+  PropertyType,
+  PropertyView,
+} from "../lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
   "apartment", "villa", "townhouse", "duplex", "studio", "chalet", "office", "shop", "land", "other",
@@ -21,6 +28,34 @@ const FINISHING_LEVELS: { label: string; value: FinishingLevel }[] = [
   { label: "Semi-finished", value: "semi_finished" },
   { label: "Core & shell", value: "core_shell" },
   { label: "Not finished", value: "not_finished" },
+];
+
+const FURNISHING_STATUSES: { label: string; value: FurnishingStatus }[] = [
+  { label: "Unfurnished", value: "unfurnished" },
+  { label: "Semi-furnished", value: "semi_furnished" },
+  { label: "Furnished", value: "furnished" },
+];
+
+const PROPERTY_VIEWS: { label: string; value: PropertyView }[] = [
+  { label: "Garden", value: "garden" },
+  { label: "Sea", value: "sea" },
+  { label: "Pool", value: "pool" },
+  { label: "Street", value: "street" },
+  { label: "Landmark", value: "landmark" },
+  { label: "Other", value: "other" },
+];
+
+const AMENITY_OPTIONS: { label: string; value: string }[] = [
+  { label: "Pool", value: "pool" },
+  { label: "Gym", value: "gym" },
+  { label: "Security", value: "security" },
+  { label: "Parking", value: "parking" },
+  { label: "Elevator", value: "elevator" },
+  { label: "Central A/C", value: "central_ac" },
+  { label: "Maid's room", value: "maids_room" },
+  { label: "Garden", value: "garden" },
+  { label: "Roof access", value: "roof" },
+  { label: "Storage room", value: "storage" },
 ];
 
 export default function PostPropertyScreen() {
@@ -41,6 +76,13 @@ export default function PostPropertyScreen() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
   const [downPaymentPercent, setDownPaymentPercent] = useState("");
   const [installmentYears, setInstallmentYears] = useState("");
+  const [furnishing, setFurnishing] = useState<FurnishingStatus | "">("");
+  const [compoundName, setCompoundName] = useState("");
+  const [developerName, setDeveloperName] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [floorNumber, setFloorNumber] = useState("");
+  const [view, setView] = useState<PropertyView | "">("");
+  const [amenities, setAmenities] = useState<string[]>([]);
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -56,6 +98,10 @@ export default function PostPropertyScreen() {
       quality: 0.8,
     });
     if (!result.canceled) setPhotos(result.assets);
+  }
+
+  function toggleAmenity(value: string) {
+    setAmenities((prev) => (prev.includes(value) ? prev.filter((a) => a !== value) : [...prev, value]));
   }
 
   async function handleSubmit() {
@@ -98,6 +144,13 @@ export default function PostPropertyScreen() {
           listingType === "sale" && paymentMethod === "installments" && installmentYears
             ? Number(installmentYears)
             : null,
+        furnishing: furnishing || null,
+        compound_name: compoundName.trim() || null,
+        developer_name: developerName.trim() || null,
+        delivery_date: deliveryDate.trim() || null,
+        floor_number: floorNumber ? Number(floorNumber) : null,
+        view: view || null,
+        amenities,
         flagged: flagReasons.length > 0,
         flag_reasons: flagReasons,
       })
@@ -199,6 +252,52 @@ export default function PostPropertyScreen() {
         value={finishing}
         onChange={(v) => setFinishing(v as FinishingLevel)}
       />
+
+      <ToggleRow
+        label="Furnishing"
+        options={FURNISHING_STATUSES}
+        value={furnishing}
+        onChange={(v) => setFurnishing(v as FurnishingStatus)}
+      />
+
+      <ToggleRow label="View" options={PROPERTY_VIEWS} value={view} onChange={(v) => setView(v as PropertyView)} />
+
+      <View>
+        <Text style={styles.contactTitle}>Amenities</Text>
+        <View style={styles.row}>
+          {AMENITY_OPTIONS.map((opt) => (
+            <Button
+              key={opt.value}
+              title={opt.label}
+              variant={amenities.includes(opt.value) ? "primary" : "outline"}
+              onPress={() => toggleAmenity(opt.value)}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.row}>
+        <View style={{ flex: 1 }}>
+          <TextField label="Compound / project name" value={compoundName} onChangeText={setCompoundName} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <TextField label="Developer" value={developerName} onChangeText={setDeveloperName} />
+        </View>
+      </View>
+
+      <View style={styles.row}>
+        <View style={{ flex: 1 }}>
+          <TextField
+            label="Delivery date"
+            value={deliveryDate}
+            onChangeText={setDeliveryDate}
+            placeholder='e.g. Q4 2029, or "Ready to move"'
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <TextField label="Floor number" value={floorNumber} onChangeText={setFloorNumber} keyboardType="numeric" />
+        </View>
+      </View>
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>

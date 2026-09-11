@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { scanForContactLeak } from "@/lib/moderation";
 import { useLocale } from "@/components/LocaleProvider";
 import { EGYPT_CITIES } from "@/lib/egyptCities";
-import type { FinishingLevel, ListingType, PaymentMethod, PropertyType } from "@/lib/database.types";
+import { AMENITY_KEYS } from "@/lib/i18n/dictionaries";
+import type { FinishingLevel, FurnishingStatus, ListingType, PaymentMethod, PropertyType, PropertyView } from "@/lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
   "apartment",
@@ -23,6 +24,8 @@ const PROPERTY_TYPES: PropertyType[] = [
 
 const FINISHING_LEVELS: FinishingLevel[] = ["super_lux", "finished", "semi_finished", "core_shell", "not_finished"];
 const PAYMENT_METHODS: PaymentMethod[] = ["cash", "installments"];
+const FURNISHING_STATUSES: FurnishingStatus[] = ["unfurnished", "semi_furnished", "furnished"];
+const PROPERTY_VIEWS: PropertyView[] = ["garden", "sea", "pool", "street", "landmark", "other"];
 
 const MAX_PHOTOS = 10;
 
@@ -94,6 +97,9 @@ export default function PropertyForm() {
     const flagReasons = scanForContactLeak(title, description);
     const finishing = form.get("finishing") ? (String(form.get("finishing")) as FinishingLevel) : null;
     const selectedPaymentMethod = listingType === "sale" ? paymentMethod || null : null;
+    const furnishing = form.get("furnishing") ? (String(form.get("furnishing")) as FurnishingStatus) : null;
+    const propertyView = form.get("view") ? (String(form.get("view")) as PropertyView) : null;
+    const amenities = form.getAll("amenities").map(String);
 
     const { data: property, error: insertError } = await supabase
       .from("properties")
@@ -121,6 +127,13 @@ export default function PropertyForm() {
           selectedPaymentMethod === "installments" && form.get("installment_years")
             ? Number(form.get("installment_years"))
             : null,
+        furnishing,
+        compound_name: String(form.get("compound_name") || "").trim() || null,
+        developer_name: String(form.get("developer_name") || "").trim() || null,
+        delivery_date: String(form.get("delivery_date") || "").trim() || null,
+        floor_number: form.get("floor_number") ? Number(form.get("floor_number")) : null,
+        view: propertyView,
+        amenities,
         flagged: flagReasons.length > 0,
         flag_reasons: flagReasons,
       })
@@ -323,6 +336,60 @@ export default function PropertyForm() {
               ))}
             </select>
           </label>
+          <label className="block text-sm">
+            {t.propertyForm.furnishingStatus}
+            <select name="furnishing" defaultValue="" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+              <option value="">{t.propertyForm.furnishingUnspecified}</option>
+              {FURNISHING_STATUSES.map((f) => (
+                <option key={f} value={f}>
+                  {t.furnishingStatuses[f]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.floorNumber}
+            <input name="floor_number" type="number" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.view}
+            <select name="view" defaultValue="" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+              <option value="">{t.propertyForm.viewUnspecified}</option>
+              {PROPERTY_VIEWS.map((v) => (
+                <option key={v} value={v}>
+                  {t.propertyViews[v]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.compoundName}
+            <input name="compound_name" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm">
+            {t.propertyForm.developerName}
+            <input name="developer_name" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          </label>
+          <label className="block text-sm sm:col-span-2">
+            {t.propertyForm.deliveryDate}
+            <input
+              name="delivery_date"
+              placeholder={t.propertyForm.deliveryDatePlaceholder}
+              className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+            />
+          </label>
+        </div>
+
+        <div>
+          <p className="text-sm">{t.propertyForm.amenities}</p>
+          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {AMENITY_KEYS.map((a) => (
+              <label key={a} className="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="amenities" value={a} className="rounded border-[var(--border)]" />
+                {t.amenityOptions[a]}
+              </label>
+            ))}
+          </div>
         </div>
       </Section>
 

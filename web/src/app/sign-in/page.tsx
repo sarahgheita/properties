@@ -84,6 +84,15 @@ function SignInForm() {
       return;
     }
 
+    // Supabase deliberately returns a success-shaped response (no error) when signUp() is called
+    // with an email that already has a confirmed account, to avoid leaking which emails are
+    // registered — it just doesn't send an email. The documented way to detect this case
+    // client-side is an empty identities array on the returned user.
+    if (data.user && data.user.identities && data.user.identities.length === 0) {
+      setError(t.signIn.emailAlreadyRegistered);
+      return;
+    }
+
     setConfirmationSent(true);
   }
 

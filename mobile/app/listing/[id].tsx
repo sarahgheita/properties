@@ -25,6 +25,34 @@ const PAYMENT_LABELS: Record<string, string> = {
   installments: "Installments",
 };
 
+const FURNISHING_LABELS: Record<string, string> = {
+  unfurnished: "Unfurnished",
+  semi_furnished: "Semi-furnished",
+  furnished: "Furnished",
+};
+
+const VIEW_LABELS: Record<string, string> = {
+  garden: "Garden view",
+  sea: "Sea view",
+  pool: "Pool view",
+  street: "Street view",
+  landmark: "Landmark view",
+  other: "Other view",
+};
+
+const AMENITY_LABELS: Record<string, string> = {
+  pool: "Pool",
+  gym: "Gym",
+  security: "Security",
+  parking: "Parking",
+  elevator: "Elevator",
+  central_ac: "Central A/C",
+  maids_room: "Maid's room",
+  garden: "Garden",
+  roof: "Roof access",
+  storage: "Storage room",
+};
+
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -120,7 +148,23 @@ export default function ListingDetailScreen() {
             }
           />
         )}
+        {property.furnishing && <Fact label="Furnishing" value={FURNISHING_LABELS[property.furnishing] || property.furnishing} />}
+        {property.floor_number != null && <Fact label="Floor" value={property.floor_number} />}
+        {property.view && <Fact label="View" value={VIEW_LABELS[property.view] || property.view} />}
+        {property.compound_name && <Fact label="Compound" value={property.compound_name} />}
+        {property.developer_name && <Fact label="Developer" value={property.developer_name} />}
+        {property.delivery_date && <Fact label="Delivery" value={property.delivery_date} />}
       </View>
+
+      {property.amenities && property.amenities.length > 0 && (
+        <View style={styles.amenitiesRow}>
+          {property.amenities.map((a) => (
+            <Text key={a} style={styles.amenityChip}>
+              {AMENITY_LABELS[a] || a}
+            </Text>
+          ))}
+        </View>
+      )}
 
       <Text style={styles.description}>{property.description}</Text>
 
@@ -172,6 +216,17 @@ const styles = StyleSheet.create({
   factsRow: { flexDirection: "row", flexWrap: "wrap", gap: 16, marginTop: 16, padding: 12, borderWidth: 1, borderColor: colors.border, borderRadius: 10 },
   fact: { gap: 2 },
   factValue: { fontWeight: "600", color: colors.foreground },
+  amenitiesRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 12 },
+  amenityChip: {
+    fontSize: 12,
+    color: colors.foreground,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
   description: { marginTop: 16, fontSize: 14, lineHeight: 20, color: colors.foreground },
   inquiryBox: { marginTop: 20, padding: 14, borderWidth: 1, borderColor: colors.border, borderRadius: 10, backgroundColor: colors.surface, gap: 8 },
   label: { fontWeight: "600", color: colors.foreground },

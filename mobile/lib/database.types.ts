@@ -18,6 +18,8 @@ export type PropertyType =
 export type InquiryStatus = "new" | "contacted" | "closed";
 export type FinishingLevel = "super_lux" | "finished" | "semi_finished" | "core_shell" | "not_finished";
 export type PaymentMethod = "cash" | "installments";
+export type FurnishingStatus = "unfurnished" | "semi_furnished" | "furnished";
+export type PropertyView = "garden" | "sea" | "pool" | "street" | "landmark" | "other";
 
 export interface Database {
   public: {
@@ -57,6 +59,13 @@ export interface Database {
           payment_method: PaymentMethod | null;
           down_payment_percent: number | null;
           installment_years: number | null;
+          furnishing: FurnishingStatus | null;
+          compound_name: string | null;
+          developer_name: string | null;
+          delivery_date: string | null;
+          floor_number: number | null;
+          view: PropertyView | null;
+          amenities: string[];
           status: ModerationStatus;
           rejection_reason: string | null;
           reviewed_by: string | null;
