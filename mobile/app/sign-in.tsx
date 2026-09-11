@@ -26,7 +26,7 @@ export default function SignInScreen() {
       // here) — the user sets their new password there, then comes back and signs in here.
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email,
-        API_BASE_URL ? { redirectTo: `${API_BASE_URL}/auth/confirm?next=${encodeURIComponent("/reset-password")}` } : undefined,
+        API_BASE_URL ? { redirectTo: `${API_BASE_URL}/reset-password` } : undefined,
       );
       setLoading(false);
       if (resetError) {

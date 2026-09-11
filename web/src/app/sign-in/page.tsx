@@ -36,8 +36,11 @@ function SignInForm() {
     const supabase = createClient();
 
     if (mode === "forgotPassword") {
+      // Land directly on /reset-password and let the Supabase client library auto-detect the
+      // session from the link itself (it handles whichever URL format Supabase's email sends,
+      // rather than us having to parse it manually via a server route).
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent("/reset-password")}`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       setLoading(false);
       if (resetError) {
