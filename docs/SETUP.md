@@ -25,19 +25,23 @@ Follow these steps in order. Steps 1–4 only need to be done once.
    (If you have the Supabase CLI installed locally, you can instead run
    `supabase link --project-ref <your-project-ref>` then `supabase db push` from the repo root.)
 
-## 3. Enable phone (SMS) sign-in
+## 3. Sign-in method: email + password (already free, no setup needed)
 
-Supabase needs an SMS provider to send one-time codes. The easiest is Twilio:
+Accounts use email + password via Supabase Auth — no SMS provider, no extra account, and no
+cost. It works out of the box once the migrations are run.
 
-1. Create a free [Twilio](https://www.twilio.com/try-twilio) account and a Twilio Verify Service
-   (or a regular Twilio phone number — Verify is simpler and recommended).
-2. In Supabase: **Authentication → Providers → Phone**. Enable it, choose Twilio, and paste your
-   Account SID, Auth Token, and Verify Service SID (or Message Service SID).
-3. Save. You can test it later once the web app is running (Sign In page).
+One thing worth knowing: by default, Supabase requires new users to click a confirmation link
+in their email before they can sign in (**Authentication → Providers → Email → "Confirm
+email"**). The app already handles this correctly (`web/src/app/auth/confirm/route.ts`), but if
+you'd rather people get signed in immediately after creating an account — simpler for early
+testing — you can turn that toggle off in the Supabase dashboard. Supabase sends these emails
+itself at no cost on a low rate limit (a handful per hour), which is plenty for a single agent's
+traffic; if you outgrow it later, connect a custom SMTP provider (e.g. Resend's free tier) under
+**Authentication → Settings → SMTP**.
 
-> Twilio isn't free for SMS, but the pay-as-you-go cost is small for a single agent's traffic
-> (a few cents per code sent). Trial accounts can send to verified numbers only, which is fine
-> for testing before launch.
+> Prefer phone/SMS sign-in instead? It's a bigger lift (needs a paid SMS provider like Twilio,
+> roughly $0.02–$0.08 per code at Egypt rates) and isn't wired up in this version — ask if you'd
+> like it added back.
 
 ## 4. Get a Gemini API key (free)
 
@@ -48,15 +52,15 @@ Supabase needs an SMS provider to send one-time codes. The easiest is Twilio:
 
 ## 5. Make yourself the admin
 
-Once you've signed in to the web app once with your own phone number (see step 6), go to the
-Supabase **SQL Editor** and run:
+Once you've signed up on the web app with your own email (see step 6), go to the Supabase
+**SQL Editor** and run:
 
 ```sql
-update public.profiles set role = 'admin' where phone = '+201XXXXXXXXX';
+update public.profiles set role = 'admin' where email = 'you@example.com';
 ```
 
-(Use your own number in E.164 format, as stored by Supabase auth.) Reload the site — you'll now
-see the **Admin** link in the nav bar.
+(Use the email you signed up with.) Reload the site — you'll now see the **Admin** link in the
+nav bar.
 
 ## 6. Run the web app locally
 
@@ -68,8 +72,8 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. Sign in with your phone number to create your account, then follow
-step 5 to promote yourself to admin.
+Open http://localhost:3000. Create an account (top right → Sign In → "Create one") to make your
+own account, then follow step 5 to promote yourself to admin.
 
 ## 7. Deploy the web app
 
@@ -87,7 +91,7 @@ free tier):
 cd mobile
 cp .env.example .env
 # edit .env: same Supabase URL/key as the web app, plus your deployed web app URL
-# from step 7 (needed for the AI chat tab)
+# from step 7 (needed for the AI chat tab, and for email confirmation links)
 npm install
 npm run start
 ```
@@ -111,12 +115,14 @@ step involving developer accounts with Apple/Google and isn't needed just to tes
   request, but it never writes to the database directly — the user reviews and submits it
   themselves through the normal form, so it goes through the same moderation queue as everything
   else.
+- **Arabic + English** — a language switcher (EN/عربي) in the nav bar covers the whole
+  public-facing site, RTL layout included. The AI chat also replies in whichever language the
+  visitor writes in. The admin dashboard stays English-only for now (internal tool).
 
 ## Next steps you may want
 
-- **Arabic language support** — the UI is English-only for now; the AI chat already replies in
-  whichever language the user writes in.
-- **Push/SMS notifications to you** when something new needs review (currently you have to check
-  the Admin dashboard).
+- **Push/email notifications to you** when something new needs review (currently you have to
+  check the Admin dashboard).
 - **App Store / Play Store publishing** via EAS Build once you're ready to launch the mobile app
   publicly.
+- **Phone/SMS sign-in** if you'd rather use that instead of (or alongside) email/password later.

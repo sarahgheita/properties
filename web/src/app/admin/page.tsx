@@ -45,7 +45,7 @@ export default async function AdminDashboard() {
               >
                 <div>
                   <p className="font-medium">
-                    {p.flagged && <span className="mr-2 text-[var(--danger)]">⚑ Flagged</span>}
+                    {p.flagged && <span className="me-2 text-[var(--danger)]">⚑ Flagged</span>}
                     {p.title}
                   </p>
                   <p className="text-[var(--muted)]">
@@ -75,7 +75,7 @@ export default async function AdminDashboard() {
               >
                 <div>
                   <p className="font-medium">
-                    {r.flagged && <span className="mr-2 text-[var(--danger)]">⚑ Flagged</span>}
+                    {r.flagged && <span className="me-2 text-[var(--danger)]">⚑ Flagged</span>}
                     Wants to {r.listing_type === "sale" ? "buy" : "rent"} · {r.description.slice(0, 60)}
                     {r.description.length > 60 ? "…" : ""}
                   </p>

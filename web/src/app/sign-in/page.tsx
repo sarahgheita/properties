@@ -3,7 +3,7 @@
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { normalizeEgyptPhone } from "@/lib/phone";
+import { useLocale } from "@/components/LocaleProvider";
 
 export default function SignInPage() {
   return (
@@ -17,124 +17,130 @@ function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/";
+  const confirmationFailed = searchParams.get("error") === "confirmation_failed";
+  const { t } = useLocale();
 
-  const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [phoneInput, setPhoneInput] = useState("");
-  const [normalizedPhone, setNormalizedPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
-  async function handleSendCode(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
-    const phone = normalizeEgyptPhone(phoneInput);
-    if (!phone) {
-      setError("Enter a valid Egyptian mobile number, e.g. 010 1234 5678");
+    const supabase = createClient();
+
+    if (mode === "signIn") {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      setLoading(false);
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+      router.push(next);
+      router.refresh();
       return;
     }
 
-    setLoading(true);
-    const supabase = createClient();
-    const { error: otpError } = await supabase.auth.signInWithOtp({ phone });
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`,
+      },
+    });
     setLoading(false);
 
-    if (otpError) {
-      setError(otpError.message);
+    if (signUpError) {
+      setError(signUpError.message);
       return;
     }
 
-    setNormalizedPhone(phone);
-    setStep("otp");
+    if (data.session) {
+      // Email confirmation is disabled on this project — session is active immediately.
+      router.push(next);
+      router.refresh();
+      return;
+    }
+
+    setConfirmationSent(true);
   }
 
-  async function handleVerifyCode(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    const supabase = createClient();
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      phone: normalizedPhone,
-      token: code,
-      type: "sms",
-    });
-
-    setLoading(false);
-
-    if (verifyError) {
-      setError(verifyError.message);
-      return;
-    }
-
-    router.push(next);
-    router.refresh();
+  if (confirmationSent) {
+    return (
+      <div className="mx-auto max-w-sm px-4 py-16 text-center">
+        <h1 className="text-2xl font-semibold">{t.signIn.titleSignUp}</h1>
+        <p className="mt-4 text-sm text-[var(--muted)]">{t.signIn.confirmationSent}</p>
+      </div>
+    );
   }
 
   return (
     <div className="mx-auto max-w-sm px-4 py-16">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
+      <h1 className="text-2xl font-semibold">{mode === "signIn" ? t.signIn.titleSignIn : t.signIn.titleSignUp}</h1>
       <p className="mt-1 text-sm text-[var(--muted)]">
-        {step === "phone"
-          ? "We'll text you a one-time code."
-          : `Enter the code sent to ${normalizedPhone}`}
+        {mode === "signIn" ? t.signIn.subtitleSignIn : t.signIn.subtitleSignUp}
       </p>
 
-      {step === "phone" ? (
-        <form onSubmit={handleSendCode} className="mt-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Mobile number</label>
-            <input
-              type="tel"
-              inputMode="tel"
-              autoFocus
-              placeholder="01X XXXX XXXX"
-              value={phoneInput}
-              onChange={(e) => setPhoneInput(e.target.value)}
-              className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-            />
-          </div>
-          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-[var(--brand)] py-2 font-medium text-white disabled:opacity-60"
-          >
-            {loading ? "Sending…" : "Send code"}
-          </button>
-        </form>
-      ) : (
-        <form onSubmit={handleVerifyCode} className="mt-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium">Verification code</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
-              placeholder="123456"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2 tracking-widest"
-            />
-          </div>
-          {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-md bg-[var(--brand)] py-2 font-medium text-white disabled:opacity-60"
-          >
-            {loading ? "Verifying…" : "Verify & sign in"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setStep("phone")}
-            className="w-full text-sm text-[var(--muted)] hover:text-[var(--foreground)]"
-          >
-            Use a different number
-          </button>
-        </form>
+      {confirmationFailed && (
+        <p className="mt-4 rounded-md border border-[var(--danger)] bg-[var(--danger)]/10 px-3 py-2 text-sm text-[var(--danger)]">
+          {t.signIn.confirmationFailed}
+        </p>
       )}
+
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <div>
+          <label className="block text-sm font-medium">{t.signIn.email}</label>
+          <input
+            type="email"
+            required
+            autoFocus
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">{t.signIn.password}</label>
+          <input
+            type="password"
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+          />
+        </div>
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-md bg-[var(--brand)] py-2 font-medium text-white disabled:opacity-60"
+        >
+          {loading
+            ? mode === "signIn"
+              ? t.signIn.signingIn
+              : t.signIn.signingUp
+            : mode === "signIn"
+              ? t.signIn.signInButton
+              : t.signIn.signUpButton}
+        </button>
+      </form>
+
+      <p className="mt-4 text-center text-sm text-[var(--muted)]">
+        {mode === "signIn" ? t.signIn.noAccount : t.signIn.haveAccount}{" "}
+        <button
+          type="button"
+          onClick={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
+          className="font-medium text-[var(--brand)] underline"
+        >
+          {mode === "signIn" ? t.signIn.switchToSignUp : t.signIn.switchToSignIn}
+        </button>
+      </p>
     </div>
   );
 }

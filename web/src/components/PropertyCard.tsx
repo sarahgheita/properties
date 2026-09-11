@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { formatPrice, propertyPhotoUrl } from "@/lib/format";
+import { getDictionary, type Locale } from "@/lib/i18n/dictionaries";
 import type { Database } from "@/lib/database.types";
 
 type Property = Database["public"]["Tables"]["properties"]["Row"];
@@ -7,10 +8,14 @@ type Property = Database["public"]["Tables"]["properties"]["Row"];
 export default function PropertyCard({
   property,
   photoPath,
+  locale,
 }: {
   property: Property;
   photoPath?: string | null;
+  locale: Locale;
 }) {
+  const t = getDictionary(locale);
+
   return (
     <Link
       href={`/listings/${property.id}`}
@@ -26,7 +31,7 @@ export default function PropertyCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-[var(--muted)]">
-            No photo yet
+            {t.listings.noPhoto}
           </div>
         )}
       </div>
@@ -39,7 +44,7 @@ export default function PropertyCard({
                 : "bg-[var(--accent)]/10 text-[var(--accent)]"
             }`}
           >
-            {property.listing_type === "sale" ? "For Sale" : "For Rent"}
+            {property.listing_type === "sale" ? t.listings.forSale : t.listings.forRent}
           </span>
           <span className="text-[var(--muted)]">
             {property.area}, {property.city}
@@ -51,8 +56,8 @@ export default function PropertyCard({
         </p>
         <p className="mt-1 text-sm text-[var(--muted)]">
           {[
-            property.bedrooms ? `${property.bedrooms} bed` : null,
-            property.bathrooms ? `${property.bathrooms} bath` : null,
+            property.bedrooms ? `${property.bedrooms} ${t.listings.bed}` : null,
+            property.bathrooms ? `${property.bathrooms} ${t.listings.bath}` : null,
             property.area_sqm ? `${property.area_sqm} m²` : null,
           ]
             .filter(Boolean)

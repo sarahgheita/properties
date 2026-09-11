@@ -1,20 +1,24 @@
 import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import PropertyForm from "@/components/PropertyForm";
+import { getServerLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function NewPropertyPage() {
   const { user } = await getCurrentProfile();
+  const locale = await getServerLocale();
+  const t = getDictionary(locale);
 
   if (!user) {
     return (
       <div className="mx-auto max-w-md px-4 py-16 text-center">
-        <h1 className="text-xl font-semibold">Sign in to post a property</h1>
-        <p className="mt-2 text-[var(--muted)]">We use your phone number to verify listings before they go live.</p>
+        <h1 className="text-xl font-semibold">{t.newPropertyPage.signInTitle}</h1>
+        <p className="mt-2 text-[var(--muted)]">{t.newPropertyPage.signInSubtitle}</p>
         <Link
           href="/sign-in?next=/listings/new"
           className="mt-6 inline-block rounded-md bg-[var(--brand)] px-5 py-2.5 font-medium text-white"
         >
-          Sign In
+          {t.nav.signIn}
         </Link>
       </div>
     );
@@ -22,10 +26,8 @@ export default async function NewPropertyPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Post a Property</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">
-        Fill in the details below. An agent reviews every submission before it&apos;s published.
-      </p>
+      <h1 className="text-2xl font-semibold">{t.newPropertyPage.title}</h1>
+      <p className="mt-1 text-sm text-[var(--muted)]">{t.newPropertyPage.subtitle}</p>
       <div className="mt-6">
         <PropertyForm />
       </div>

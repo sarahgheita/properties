@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { scanForContactLeak } from "@/lib/moderation";
+import { useLocale } from "@/components/LocaleProvider";
 import type { ListingType, PropertyType } from "@/lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -21,6 +22,7 @@ const PROPERTY_TYPES: PropertyType[] = [
 
 export default function RequestForm() {
   const router = useRouter();
+  const { t } = useLocale();
 
   // If the AI chat assistant already gathered details, it stashes them here before sending the
   // user to this page — pick them up once so the form arrives pre-filled.
@@ -51,7 +53,7 @@ export default function RequestForm() {
     const contactEmail = String(form.get("contact_email") || "").trim();
 
     if (!description || !contactName || !contactPhone) {
-      setError("Please describe what you're looking for and how to reach you.");
+      setError(t.requestForm.requiredError);
       return;
     }
 
@@ -63,7 +65,7 @@ export default function RequestForm() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setError("Please sign in first.");
+      setError(t.requestForm.signInFirst);
       setSubmitting(false);
       return;
     }
@@ -117,23 +119,23 @@ export default function RequestForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <label className="block text-sm">
-          Looking to
+          {t.requestForm.lookingTo}
           <select
             value={listingType}
             onChange={(e) => setListingType(e.target.value as ListingType)}
             className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
           >
-            <option value="rent">Rent</option>
-            <option value="sale">Buy</option>
+            <option value="rent">{t.requestForm.rent}</option>
+            <option value="sale">{t.requestForm.buy}</option>
           </select>
         </label>
         <label className="block text-sm">
-          Property type
+          {t.requestForm.propertyType}
           <select name="property_type" defaultValue={initial?.property_type || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
-            <option value="">Any</option>
-            {PROPERTY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t[0].toUpperCase() + t.slice(1)}
+            <option value="">{t.requestForm.any}</option>
+            {PROPERTY_TYPES.map((pt) => (
+              <option key={pt} value={pt}>
+                {t.propertyTypes[pt]}
               </option>
             ))}
           </select>
@@ -141,54 +143,54 @@ export default function RequestForm() {
       </div>
 
       <label className="block text-sm">
-        Describe what you&apos;re looking for *
+        {t.requestForm.describe} *
         <textarea
           name="description"
           required
           rows={4}
           defaultValue={initial?.description || ""}
           className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-          placeholder="e.g. 2-bedroom apartment near Maadi metro, ground floor preferred, need parking"
+          placeholder={t.requestForm.describePlaceholder}
         />
       </label>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <label className="block text-sm">
-          Min budget (EGP)
+          {t.requestForm.minBudget}
           <input name="budget_min" type="number" min={0} defaultValue={initial?.budget_min || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
-          Max budget (EGP)
+          {t.requestForm.maxBudget}
           <input name="budget_max" type="number" min={0} defaultValue={initial?.budget_max || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
-          City
+          {t.requestForm.city}
           <input name="city" defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
-          Min bedrooms
+          {t.requestForm.minBedrooms}
           <input name="bedrooms_min" type="number" min={0} defaultValue={initial?.bedrooms_min || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
       </div>
 
       <label className="block text-sm">
-        Preferred area / neighborhood
+        {t.requestForm.preferredArea}
         <input name="area" defaultValue={initial?.area || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
       </label>
 
       <fieldset className="rounded-lg border border-[var(--border)] p-4">
-        <legend className="px-1 text-sm font-medium">Your contact info (private — never shown publicly)</legend>
+        <legend className="px-1 text-sm font-medium">{t.requestForm.contactLegend}</legend>
         <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block text-sm">
-            Name *
+            {t.requestForm.contactName} *
             <input name="contact_name" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
           <label className="block text-sm">
-            Phone *
+            {t.requestForm.contactPhone} *
             <input name="contact_phone" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
           <label className="block text-sm">
-            Email
+            {t.requestForm.contactEmail}
             <input name="contact_email" type="email" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
         </div>
@@ -201,7 +203,7 @@ export default function RequestForm() {
         disabled={submitting}
         className="rounded-md bg-[var(--brand)] px-5 py-2.5 font-medium text-white disabled:opacity-60"
       >
-        {submitting ? "Submitting…" : "Submit request"}
+        {submitting ? t.requestForm.submitting : t.requestForm.submit}
       </button>
     </form>
   );

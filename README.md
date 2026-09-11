@@ -13,8 +13,7 @@ live, and contact info is never shown publicly — all communication routes thro
 - **`supabase/migrations/`** — the database schema: tables, row-level security policies, and
   storage bucket setup. Source of truth for both apps.
 - **`docs/SETUP.md`** — step-by-step instructions to get this running: create a Supabase
-  project, enable phone sign-in, get a free Gemini API key, deploy the web app, and run the
-  mobile app.
+  project, get a free Gemini API key, deploy the web app, and run the mobile app.
 
 ## How moderation works
 

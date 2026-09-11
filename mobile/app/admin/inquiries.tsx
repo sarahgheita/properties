@@ -9,7 +9,7 @@ type Inquiry = Database["public"]["Tables"]["property_inquiries"]["Row"];
 export default function AdminInquiries() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [properties, setProperties] = useState<Record<string, { title: string }>>({});
-  const [requesters, setRequesters] = useState<Record<string, { phone: string | null; full_name: string | null }>>({});
+  const [requesters, setRequesters] = useState<Record<string, { email: string | null; full_name: string | null }>>({});
 
   useEffect(() => {
     (async () => {
@@ -24,7 +24,7 @@ export default function AdminInquiries() {
         setProperties(Object.fromEntries((props || []).map((p) => [p.id, p])));
       }
       if (requesterIds.length) {
-        const { data: reqs } = await supabase.from("profiles").select("id, phone, full_name").in("id", requesterIds);
+        const { data: reqs } = await supabase.from("profiles").select("id, email, full_name").in("id", requesterIds);
         setRequesters(Object.fromEntries((reqs || []).map((r) => [r.id, r])));
       }
     })();
@@ -43,7 +43,7 @@ export default function AdminInquiries() {
           <Text style={styles.message}>{item.message}</Text>
           <Text style={styles.muted}>
             From: {requesters[item.requester_id]?.full_name || "Unnamed"} ·{" "}
-            {requesters[item.requester_id]?.phone || "no phone on file"}
+            {requesters[item.requester_id]?.email || "no email on file"}
           </Text>
         </View>
       )}

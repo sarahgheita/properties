@@ -17,7 +17,7 @@ export default async function AdminInquiriesPage() {
       ? supabase.from("properties").select("id, title, city, area").in("id", propertyIds)
       : Promise.resolve({ data: [] }),
     requesterIds.length
-      ? supabase.from("profiles").select("id, phone, full_name").in("id", requesterIds)
+      ? supabase.from("profiles").select("id, email, full_name").in("id", requesterIds)
       : Promise.resolve({ data: [] }),
   ]);
 
@@ -47,7 +47,7 @@ export default async function AdminInquiriesPage() {
                 <p className="text-[var(--muted)]">{[property?.area, property?.city].filter(Boolean).join(", ")}</p>
                 <p className="mt-2">{inq.message}</p>
                 <p className="mt-2 text-xs text-[var(--muted)]">
-                  From: {requester?.full_name || "Unnamed"} · {requester?.phone || "no phone on file"}
+                  From: {requester?.full_name || "Unnamed"} · {requester?.email || "no email on file"}
                 </p>
               </div>
             );

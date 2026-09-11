@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { callGemini, type ChatTurn } from "@/lib/gemini";
 
 export async function POST(request: Request) {
-  let body: { messages?: ChatTurn[] };
+  let body: { messages?: ChatTurn[]; locale?: string };
   try {
     body = await request.json();
   } catch {
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const reply = await callGemini(messages);
+    const reply = await callGemini(messages, body.locale);
     return NextResponse.json(reply);
   } catch (err) {
     console.error("Gemini chat error", err);

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "@/components/LocaleProvider";
 
 interface Message {
   role: "user" | "model";
@@ -19,20 +20,20 @@ interface Proposal {
   bedrooms_min?: number;
 }
 
-const GREETING: Message = {
-  role: "model",
-  text: "Hi! I can answer questions about how this site works, or help you describe a property you're looking for. What can I help with?",
-};
-
 export default function ChatWidget() {
   const router = useRouter();
+  const { locale, t } = useLocale();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([GREETING]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // The greeting is derived from the current language rather than stored in state, so switching
+  // language before sending anything updates it automatically without an extra render pass.
+  const displayMessages = messages.length === 0 ? [{ role: "model" as const, text: t.chat.greeting }] : messages;
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -53,12 +54,12 @@ export default function ChatWidget() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({ messages: nextMessages, locale }),
       });
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Something went wrong.");
+        setError(data.error || t.chat.unavailable);
         setLoading(false);
         return;
       }
@@ -70,7 +71,7 @@ export default function ChatWidget() {
         setProposal(data.proposal);
       }
     } catch {
-      setError("Couldn't reach the assistant. Please try again.");
+      setError(t.chat.unreachable);
     } finally {
       setLoading(false);
     }
@@ -94,22 +95,22 @@ export default function ChatWidget() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 end-4 z-50">
       {open && (
         <div className="mb-3 flex h-[28rem] w-80 flex-col overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface)] shadow-xl sm:w-96">
           <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-            <p className="font-medium">Ask us anything</p>
-            <button onClick={() => setOpen(false)} className="text-[var(--muted)] hover:text-[var(--foreground)]" aria-label="Close chat">
+            <p className="font-medium">{t.chat.header}</p>
+            <button onClick={() => setOpen(false)} className="text-[var(--muted)] hover:text-[var(--foreground)]" aria-label={t.chat.close}>
               ✕
             </button>
           </div>
 
           <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
-            {messages.map((m, i) => (
+            {displayMessages.map((m, i) => (
               <div
                 key={i}
                 className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                  m.role === "user" ? "ml-auto bg-[var(--brand)] text-white" : "bg-[var(--background)]"
+                  m.role === "user" ? "ms-auto bg-[var(--brand)] text-white" : "bg-[var(--background)]"
                 }`}
               >
                 {m.text}
@@ -120,23 +121,36 @@ export default function ChatWidget() {
 
             {proposal && (
               <div className="rounded-lg border border-[var(--brand)] bg-[var(--brand)]/5 p-3">
-                <p className="font-medium">Here&apos;s what I&apos;ve got:</p>
+                <p className="font-medium">{t.chat.proposalTitle}</p>
                 <ul className="mt-1 space-y-0.5 text-xs text-[var(--foreground)]">
-                  {proposal.listing_type && <li>Looking to {proposal.listing_type === "sale" ? "buy" : "rent"}</li>}
-                  {proposal.property_type && <li>Type: {proposal.property_type}</li>}
-                  {(proposal.city || proposal.area) && <li>Area: {[proposal.area, proposal.city].filter(Boolean).join(", ")}</li>}
-                  {(proposal.budget_min || proposal.budget_max) && (
+                  {proposal.listing_type && <li>{proposal.listing_type === "sale" ? t.chat.wantsToBuy : t.chat.wantsToRent}</li>}
+                  {proposal.property_type && (
                     <li>
-                      Budget: {proposal.budget_min ?? "?"} – {proposal.budget_max ?? "?"} EGP
+                      {t.chat.type} {t.propertyTypes[proposal.property_type as keyof typeof t.propertyTypes] || proposal.property_type}
                     </li>
                   )}
-                  {proposal.bedrooms_min && <li>{proposal.bedrooms_min}+ bedrooms</li>}
+                  {(proposal.city || proposal.area) && (
+                    <li>
+                      {t.chat.areaLabel} {[proposal.area, proposal.city].filter(Boolean).join(", ")}
+                    </li>
+                  )}
+                  {(proposal.budget_min || proposal.budget_max) && (
+                    <li>
+                      {t.chat.budgetLabel} {proposal.budget_min ?? "?"} – {proposal.budget_max ?? "?"} EGP
+                    </li>
+                  )}
+                  {proposal.bedrooms_min && (
+                    <li>
+                      {proposal.bedrooms_min}
+                      {t.chat.plusBedrooms}
+                    </li>
+                  )}
                 </ul>
                 <button
                   onClick={submitProposal}
                   className="mt-2 rounded-md bg-[var(--brand)] px-3 py-1.5 text-xs font-medium text-white"
                 >
-                  Review & submit request
+                  {t.chat.reviewAndSubmit}
                 </button>
               </div>
             )}
@@ -146,7 +160,7 @@ export default function ChatWidget() {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Type a message…"
+              placeholder={t.chat.placeholder}
               className="flex-1 rounded-md border border-[var(--border)] px-3 py-1.5 text-sm"
             />
             <button
@@ -154,7 +168,7 @@ export default function ChatWidget() {
               disabled={loading}
               className="rounded-md bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white disabled:opacity-60"
             >
-              Send
+              {t.chat.send}
             </button>
           </form>
         </div>
@@ -163,7 +177,7 @@ export default function ChatWidget() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--brand)] text-2xl text-white shadow-lg hover:opacity-90"
-        aria-label="Open chat"
+        aria-label={open ? t.chat.close : t.chat.open}
       >
         {open ? "✕" : "💬"}
       </button>

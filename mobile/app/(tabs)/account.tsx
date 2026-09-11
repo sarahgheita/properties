@@ -24,7 +24,7 @@ export default function AccountScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Account</Text>
-      <Text style={styles.subtitle}>{profile?.phone}</Text>
+      <Text style={styles.subtitle}>{profile?.email}</Text>
 
       <View style={styles.actions}>
         <Button title="Post a Property" onPress={() => router.push("/post-property")} />

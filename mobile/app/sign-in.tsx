@@ -2,87 +2,88 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../lib/supabase";
-import { normalizeEgyptPhone } from "../lib/phone";
 import { colors } from "../lib/theme";
+import { API_BASE_URL } from "../lib/site";
 import TextField from "../components/TextField";
 import Button from "../components/Button";
 
 export default function SignInScreen() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "otp">("phone");
-  const [phoneInput, setPhoneInput] = useState("");
-  const [normalizedPhone, setNormalizedPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [mode, setMode] = useState<"signIn" | "signUp">("signIn");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
-  async function sendCode() {
-    setError(null);
-    const phone = normalizeEgyptPhone(phoneInput);
-    if (!phone) {
-      setError("Enter a valid Egyptian mobile number, e.g. 010 1234 5678");
-      return;
-    }
-    setLoading(true);
-    const { error: otpError } = await supabase.auth.signInWithOtp({ phone });
-    setLoading(false);
-    if (otpError) {
-      setError(otpError.message);
-      return;
-    }
-    setNormalizedPhone(phone);
-    setStep("otp");
-  }
-
-  async function verifyCode() {
+  async function handleSubmit() {
     setError(null);
     setLoading(true);
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      phone: normalizedPhone,
-      token: code,
-      type: "sms",
+
+    if (mode === "signIn") {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      setLoading(false);
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+      router.back();
+      return;
+    }
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      // Confirmation links open in a browser and land on the web app, so no deep-link setup
+      // is needed here. Falls back gracefully if the web app isn't deployed yet.
+      options: API_BASE_URL ? { emailRedirectTo: `${API_BASE_URL}/auth/confirm` } : undefined,
     });
     setLoading(false);
-    if (verifyError) {
-      setError(verifyError.message);
+
+    if (signUpError) {
+      setError(signUpError.message);
       return;
     }
-    router.back();
+
+    if (data.session) {
+      router.back();
+      return;
+    }
+
+    setConfirmationSent(true);
+  }
+
+  if (confirmationSent) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Create account</Text>
+        <Text style={styles.subtitle}>Check your email for a confirmation link, then come back to sign in.</Text>
+      </View>
+    );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Sign in</Text>
+      <Text style={styles.title}>{mode === "signIn" ? "Sign in" : "Create account"}</Text>
       <Text style={styles.subtitle}>
-        {step === "phone" ? "We'll text you a one-time code." : `Enter the code sent to ${normalizedPhone}`}
+        {mode === "signIn" ? "Sign in with your email and password." : "Create an account to post a property or a request."}
       </Text>
 
-      {step === "phone" ? (
-        <View style={styles.form}>
-          <TextField
-            label="Mobile number"
-            keyboardType="phone-pad"
-            placeholder="01X XXXX XXXX"
-            value={phoneInput}
-            onChangeText={setPhoneInput}
-          />
-          {error && <Text style={styles.error}>{error}</Text>}
-          <Button title="Send code" onPress={sendCode} loading={loading} />
-        </View>
-      ) : (
-        <View style={styles.form}>
-          <TextField
-            label="Verification code"
-            keyboardType="number-pad"
-            placeholder="123456"
-            value={code}
-            onChangeText={setCode}
-          />
-          {error && <Text style={styles.error}>{error}</Text>}
-          <Button title="Verify & sign in" onPress={verifyCode} loading={loading} />
-          <Button title="Use a different number" variant="outline" onPress={() => setStep("phone")} />
-        </View>
-      )}
+      <View style={styles.form}>
+        <TextField label="Email" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+        <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} />
+        {error && <Text style={styles.error}>{error}</Text>}
+        <Button
+          title={mode === "signIn" ? "Sign in" : "Create account"}
+          onPress={handleSubmit}
+          loading={loading}
+        />
+        <Button
+          title={mode === "signIn" ? "Don't have an account? Create one" : "Already have an account? Sign in"}
+          variant="outline"
+          onPress={() => setMode(mode === "signIn" ? "signUp" : "signIn")}
+        />
+      </View>
     </View>
   );
 }

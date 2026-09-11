@@ -26,6 +26,7 @@ export interface Database {
           role: UserRole;
           full_name: string | null;
           phone: string | null;
+          email: string | null;
           created_at: string;
           updated_at: string;
         };

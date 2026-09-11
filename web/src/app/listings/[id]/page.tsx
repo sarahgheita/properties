@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, propertyPhotoUrl } from "@/lib/format";
 import InquiryForm from "@/components/InquiryForm";
+import { getServerLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 export default async function PropertyDetailPage({
   params,
@@ -10,6 +12,8 @@ export default async function PropertyDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const locale = await getServerLocale();
+  const t = getDictionary(locale);
 
   const [{ data: property }, { data: images }, { data: userData }] = await Promise.all([
     supabase.from("properties").select("*").eq("id", id).maybeSingle(),
@@ -27,12 +31,20 @@ export default async function PropertyDetailPage({
   // but the page still shouldn't render pending content to a stranger who guesses the URL.
   const { user } = userData;
 
+  const statusBanner =
+    property.status === "pending_review"
+      ? t.listingDetail.pendingBanner
+      : property.status === "rejected"
+        ? t.listingDetail.rejectedBanner
+        : property.status === "archived"
+          ? t.listingDetail.archivedBanner
+          : null;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
-      {property.status !== "approved" && (
+      {statusBanner && (
         <div className="mb-6 rounded-md border border-[var(--accent)] bg-[var(--accent)]/10 px-4 py-2 text-sm text-[var(--accent)]">
-          This listing is {property.status === "pending_review" ? "awaiting review" : property.status} and
-          is only visible to you.
+          {statusBanner}
         </div>
       )}
 
@@ -52,7 +64,7 @@ export default async function PropertyDetailPage({
             </div>
           ) : (
             <div className="flex aspect-[16/9] items-center justify-center rounded-lg bg-[var(--surface)] text-[var(--muted)]">
-              No photos yet
+              {t.listingDetail.noPhotos}
             </div>
           )}
 
@@ -64,7 +76,7 @@ export default async function PropertyDetailPage({
                   : "bg-[var(--accent)]/10 text-[var(--accent)]"
               }`}
             >
-              {property.listing_type === "sale" ? "For Sale" : "For Rent"}
+              {property.listing_type === "sale" ? t.listings.forSale : t.listings.forRent}
             </span>
             <h1 className="mt-2 text-2xl font-semibold">{property.title}</h1>
             <p className="text-[var(--muted)]">
@@ -76,15 +88,15 @@ export default async function PropertyDetailPage({
 
             <dl className="mt-4 grid grid-cols-3 gap-4 rounded-lg border border-[var(--border)] p-4 text-sm">
               <div>
-                <dt className="text-[var(--muted)]">Bedrooms</dt>
+                <dt className="text-[var(--muted)]">{t.listingDetail.bedrooms}</dt>
                 <dd className="font-medium">{property.bedrooms ?? "—"}</dd>
               </div>
               <div>
-                <dt className="text-[var(--muted)]">Bathrooms</dt>
+                <dt className="text-[var(--muted)]">{t.listingDetail.bathrooms}</dt>
                 <dd className="font-medium">{property.bathrooms ?? "—"}</dd>
               </div>
               <div>
-                <dt className="text-[var(--muted)]">Area</dt>
+                <dt className="text-[var(--muted)]">{t.listingDetail.area}</dt>
                 <dd className="font-medium">{property.area_sqm ? `${property.area_sqm} m²` : "—"}</dd>
               </div>
             </dl>
@@ -94,11 +106,8 @@ export default async function PropertyDetailPage({
         </div>
 
         <div className="space-y-4">
-          <InquiryForm propertyId={property.id} signedIn={!!user} />
-          <p className="text-xs text-[var(--muted)]">
-            For your safety, contact details are never shown publicly. All communication about this
-            listing goes through the agent.
-          </p>
+          <InquiryForm propertyId={property.id} signedIn={!!user} locale={locale} />
+          <p className="text-xs text-[var(--muted)]">{t.listingDetail.privacyNote}</p>
         </div>
       </div>
     </div>

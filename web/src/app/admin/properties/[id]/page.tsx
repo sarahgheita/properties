@@ -83,7 +83,7 @@ export default async function AdminPropertyReviewPage({
           )}
           {ownerProfile && (
             <p className="mt-3 text-xs text-[var(--muted)]">
-              Posted by account: {ownerProfile.phone || ownerProfile.id}
+              Posted by account: {ownerProfile.email || ownerProfile.id}
             </p>
           )}
         </div>

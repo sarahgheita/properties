@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { scanForContactLeak } from "@/lib/moderation";
+import { useLocale } from "@/components/LocaleProvider";
 import type { ListingType, PropertyType } from "@/lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -23,6 +24,7 @@ const MAX_PHOTOS = 10;
 
 export default function PropertyForm() {
   const router = useRouter();
+  const { t, interpolate } = useLocale();
   const [listingType, setListingType] = useState<ListingType>("sale");
   const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function PropertyForm() {
     const contactEmail = String(form.get("contact_email") || "").trim();
 
     if (!title || !description || !price || !city || !area || !contactName || !contactPhone) {
-      setError("Please fill in all required fields.");
+      setError(t.propertyForm.requiredError);
       return;
     }
 
@@ -55,7 +57,7 @@ export default function PropertyForm() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      setError("Please sign in first.");
+      setError(t.propertyForm.signInFirst);
       setSubmitting(false);
       return;
     }
@@ -132,22 +134,22 @@ export default function PropertyForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <label className="block text-sm">
-          Listing type *
+          {t.propertyForm.listingType} *
           <select
             value={listingType}
             onChange={(e) => setListingType(e.target.value as ListingType)}
             className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
           >
-            <option value="sale">For Sale</option>
-            <option value="rent">For Rent</option>
+            <option value="sale">{t.listings.forSale}</option>
+            <option value="rent">{t.listings.forRent}</option>
           </select>
         </label>
         <label className="block text-sm">
-          Property type *
+          {t.propertyForm.propertyType} *
           <select name="property_type" defaultValue="apartment" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
-            {PROPERTY_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t[0].toUpperCase() + t.slice(1)}
+            {PROPERTY_TYPES.map((pt) => (
+              <option key={pt} value={pt}>
+                {t.propertyTypes[pt]}
               </option>
             ))}
           </select>
@@ -155,63 +157,63 @@ export default function PropertyForm() {
       </div>
 
       <label className="block text-sm">
-        Title *
-        <input name="title" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" placeholder="e.g. Modern 3BR apartment in New Cairo" />
+        {t.propertyForm.title} *
+        <input name="title" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" placeholder={t.propertyForm.titlePlaceholder} />
       </label>
 
       <label className="block text-sm">
-        Description *
+        {t.propertyForm.description} *
         <textarea
           name="description"
           required
           rows={5}
           className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-          placeholder="Describe the property. Please don't include phone numbers or social media — we'll add your listing details for you and handle buyer contact."
+          placeholder={t.propertyForm.descriptionPlaceholder}
         />
       </label>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <label className="block text-sm">
-          Price (EGP) *
+          {t.propertyForm.priceEgp} *
           <input name="price" type="number" required min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         {listingType === "rent" && (
           <label className="block text-sm">
-            Per
+            {t.propertyForm.per}
             <select name="rent_period" defaultValue="month" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
-              <option value="month">Month</option>
-              <option value="year">Year</option>
-              <option value="day">Day</option>
+              <option value="month">{t.propertyForm.month}</option>
+              <option value="year">{t.propertyForm.year}</option>
+              <option value="day">{t.propertyForm.day}</option>
             </select>
           </label>
         )}
         <label className="block text-sm">
-          Bedrooms
+          {t.propertyForm.bedrooms}
           <input name="bedrooms" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
-          Bathrooms
+          {t.propertyForm.bathrooms}
           <input name="bathrooms" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
-          Area (m²)
+          {t.propertyForm.areaSqm}
           <input name="area_sqm" type="number" min={0} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <label className="block text-sm">
-          City *
+          {t.propertyForm.city} *
           <input name="city" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
         <label className="block text-sm">
-          Area / Neighborhood *
+          {t.propertyForm.area} *
           <input name="area" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
         </label>
       </div>
 
       <label className="block text-sm">
-        Photos (up to {MAX_PHOTOS})
+        {interpolate(t.propertyForm.photos, { max: MAX_PHOTOS })}
         <input
           type="file"
           accept="image/*"
@@ -219,25 +221,22 @@ export default function PropertyForm() {
           onChange={(e) => setPhotos(Array.from(e.target.files || []).slice(0, MAX_PHOTOS))}
           className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
         />
-        <span className="text-xs text-[var(--muted)]">
-          Make sure photos don&apos;t contain visible phone numbers, watermarks, or social handles —
-          we review every photo before publishing.
-        </span>
+        <span className="text-xs text-[var(--muted)]">{t.propertyForm.photosHint}</span>
       </label>
 
       <fieldset className="rounded-lg border border-[var(--border)] p-4">
-        <legend className="px-1 text-sm font-medium">Your contact info (private — never shown publicly)</legend>
+        <legend className="px-1 text-sm font-medium">{t.propertyForm.contactLegend}</legend>
         <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <label className="block text-sm">
-            Name *
+            {t.propertyForm.contactName} *
             <input name="contact_name" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
           <label className="block text-sm">
-            Phone *
+            {t.propertyForm.contactPhone} *
             <input name="contact_phone" required className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
           <label className="block text-sm">
-            Email
+            {t.propertyForm.contactEmail}
             <input name="contact_email" type="email" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
           </label>
         </div>
@@ -250,11 +249,9 @@ export default function PropertyForm() {
         disabled={submitting}
         className="rounded-md bg-[var(--brand)] px-5 py-2.5 font-medium text-white disabled:opacity-60"
       >
-        {submitting ? "Submitting…" : "Submit for review"}
+        {submitting ? t.propertyForm.submitting : t.propertyForm.submit}
       </button>
-      <p className="text-xs text-[var(--muted)]">
-        Your listing goes live only after we review it. This usually takes less than a day.
-      </p>
+      <p className="text-xs text-[var(--muted)]">{t.propertyForm.footnote}</p>
     </form>
   );
 }
