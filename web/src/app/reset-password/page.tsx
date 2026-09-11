@@ -22,12 +22,13 @@ function ResetPasswordForm() {
 
   useEffect(() => {
     const supabase = createClient();
+    let cancelled = false;
 
     async function establishSession() {
-      // Supabase's hosted verify link normally hands off a session via the URL hash, which the
-      // client library auto-detects on load. Some project configurations instead send a
-      // token_hash + type query pair, which requires an explicit verifyOtp() call — handle both
-      // rather than assuming one.
+      // Supabase's hosted verify link normally hands off a session via a `code` query param
+      // (PKCE) or a URL hash, both auto-detected by the client library on load. Some project
+      // configurations instead send a token_hash + type query pair, which requires an explicit
+      // verifyOtp() call — handle that case too rather than assuming one format.
       const tokenHash = searchParams.get("token_hash");
       const type = searchParams.get("type") as EmailOtpType | null;
       if (tokenHash && type) {
@@ -37,11 +38,29 @@ function ResetPasswordForm() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setHasSession(!!user);
-      setChecking(false);
+      if (!cancelled) {
+        setHasSession(!!user);
+        setChecking(false);
+      }
     }
 
     establishSession();
+
+    // The PKCE `code` exchange happens asynchronously inside the client library itself and can
+    // finish after our own check above — catch it here instead of leaving the user stuck on
+    // "invalid link" if that race goes the wrong way.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (cancelled || !session) return;
+      setHasSession(true);
+      setChecking(false);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [searchParams]);
 
   async function handleSubmit(e: FormEvent) {

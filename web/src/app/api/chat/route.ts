@@ -19,8 +19,12 @@ export async function POST(request: Request) {
     return NextResponse.json(reply);
   } catch (err) {
     console.error("Gemini chat error", err);
+    // Include the underlying error so it's visible in the widget itself — this app has no
+    // access to server logs day-to-day, so a generic message here means every failure needs a
+    // round trip just to find out what broke.
+    const detail = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: "The assistant is unavailable right now. Please try the forms directly." },
+      { error: `The assistant is unavailable right now (${detail}). Please try the forms directly.` },
       { status: 502 },
     );
   }
