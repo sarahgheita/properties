@@ -53,7 +53,7 @@ export default function PropertyForm() {
   });
 
   const [listingType, setListingType] = useState<ListingType>((initial?.listing_type as ListingType) || "sale");
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">((initial?.payment_method as PaymentMethod) || "");
   const [photos, setPhotos] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -297,7 +297,7 @@ export default function PropertyForm() {
           </label>
           <label className="block text-sm">
             {t.propertyForm.finishing}
-            <select name="finishing" defaultValue="" className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+            <select name="finishing" defaultValue={initial?.finishing || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
               <option value="">{t.propertyForm.finishingUnspecified}</option>
               {FINISHING_LEVELS.map((f) => (
                 <option key={f} value={f}>

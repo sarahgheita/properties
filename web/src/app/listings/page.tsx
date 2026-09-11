@@ -4,7 +4,10 @@ import { getApprovedProperties, getCoverPhotos } from "@/lib/queries";
 import PropertyCard from "@/components/PropertyCard";
 import { getServerLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import type { ListingType } from "@/lib/database.types";
+import type { FinishingLevel, ListingType, PaymentMethod } from "@/lib/database.types";
+
+const FINISHING_LEVELS: FinishingLevel[] = ["super_lux", "finished", "semi_finished", "core_shell", "not_finished"];
+const PAYMENT_METHODS: PaymentMethod[] = ["cash", "installments"];
 
 export default async function ListingsPage({
   searchParams,
@@ -21,6 +24,12 @@ export default async function ListingsPage({
   const minPrice = typeof params.min === "string" && params.min ? Number(params.min) : undefined;
   const maxPrice = typeof params.max === "string" && params.max ? Number(params.max) : undefined;
   const bedrooms = typeof params.beds === "string" && params.beds ? Number(params.beds) : undefined;
+  const finishing = (typeof params.finishing === "string" ? params.finishing : undefined) as
+    | FinishingLevel
+    | undefined;
+  const paymentMethod = (typeof params.payment === "string" ? params.payment : undefined) as
+    | PaymentMethod
+    | undefined;
 
   const supabase = await createClient();
   const properties = await getApprovedProperties(supabase, {
@@ -29,6 +38,8 @@ export default async function ListingsPage({
     minPrice,
     maxPrice,
     bedrooms,
+    finishing,
+    paymentMethod,
   });
   const covers = await getCoverPhotos(
     supabase,
@@ -39,7 +50,7 @@ export default async function ListingsPage({
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="text-2xl font-semibold">{t.listings.title}</h1>
 
-      <form method="get" className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 sm:grid-cols-3 lg:grid-cols-6">
+      <form method="get" className="mt-6 grid grid-cols-2 gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 sm:grid-cols-3 lg:grid-cols-4">
         <select name="type" defaultValue={listingType || ""} className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm">
           <option value="">{t.listings.anyType}</option>
           <option value="sale">{t.listings.forSale}</option>
@@ -73,6 +84,22 @@ export default async function ListingsPage({
           defaultValue={bedrooms ?? ""}
           className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm"
         />
+        <select name="finishing" defaultValue={finishing || ""} className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm">
+          <option value="">{t.listings.anyFinishing}</option>
+          {FINISHING_LEVELS.map((f) => (
+            <option key={f} value={f}>
+              {t.finishingLevels[f]}
+            </option>
+          ))}
+        </select>
+        <select name="payment" defaultValue={paymentMethod || ""} className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm">
+          <option value="">{t.listings.anyPayment}</option>
+          {PAYMENT_METHODS.map((pm) => (
+            <option key={pm} value={pm}>
+              {t.paymentMethods[pm]}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="rounded-md bg-[var(--brand)] px-3 py-1.5 text-sm font-medium text-white">
           {t.listings.filter}
         </button>

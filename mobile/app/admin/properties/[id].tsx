@@ -68,6 +68,16 @@ export default function AdminPropertyReview() {
       <Text style={styles.muted}>
         {property.area}, {property.city} · {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
       </Text>
+      <Text style={styles.muted}>
+        {[
+          property.bedrooms ? `${property.bedrooms} bed` : null,
+          property.bathrooms ? `${property.bathrooms} bath` : null,
+          property.finishing ? `Finishing: ${property.finishing.replace("_", " ")}` : null,
+          property.payment_method ? `Payment: ${property.payment_method}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · ")}
+      </Text>
       <Text style={styles.desc}>{property.description}</Text>
 
       {images.length > 0 && (

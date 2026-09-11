@@ -8,10 +8,18 @@ import { scanForContactLeak } from "../lib/moderation";
 import { colors } from "../lib/theme";
 import TextField from "../components/TextField";
 import Button from "../components/Button";
-import type { ListingType, PropertyType } from "../lib/database.types";
+import type { FinishingLevel, ListingType, PaymentMethod, PropertyType } from "../lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
   "apartment", "villa", "townhouse", "duplex", "studio", "chalet", "office", "shop", "land", "other",
+];
+
+const FINISHING_LEVELS: { label: string; value: FinishingLevel }[] = [
+  { label: "Super Lux", value: "super_lux" },
+  { label: "Finished", value: "finished" },
+  { label: "Semi-finished", value: "semi_finished" },
+  { label: "Core & shell", value: "core_shell" },
+  { label: "Not finished", value: "not_finished" },
 ];
 
 export default function PostPropertyScreen() {
@@ -28,6 +36,10 @@ export default function PostPropertyScreen() {
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
   const [areaSqm, setAreaSqm] = useState("");
+  const [finishing, setFinishing] = useState<FinishingLevel | "">("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("");
+  const [downPaymentPercent, setDownPaymentPercent] = useState("");
+  const [installmentYears, setInstallmentYears] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [contactEmail, setContactEmail] = useState("");
@@ -75,6 +87,10 @@ export default function PostPropertyScreen() {
         bedrooms: bedrooms ? Number(bedrooms) : null,
         bathrooms: bathrooms ? Number(bathrooms) : null,
         area_sqm: areaSqm ? Number(areaSqm) : null,
+        finishing: finishing || null,
+        payment_method: paymentMethod || null,
+        down_payment_percent: paymentMethod === "installments" && downPaymentPercent ? Number(downPaymentPercent) : null,
+        installment_years: paymentMethod === "installments" && installmentYears ? Number(installmentYears) : null,
         flagged: flagReasons.length > 0,
         flag_reasons: flagReasons,
       })
@@ -147,6 +163,30 @@ export default function PostPropertyScreen() {
       />
       <TextField label="Price (EGP) *" value={price} onChangeText={setPrice} keyboardType="numeric" />
 
+      <ToggleRow
+        label="Payment method"
+        options={[{ label: "Cash", value: "cash" }, { label: "Installments", value: "installments" }]}
+        value={paymentMethod}
+        onChange={(v) => setPaymentMethod(v as PaymentMethod)}
+      />
+      {paymentMethod === "installments" && (
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <TextField label="Down payment %" value={downPaymentPercent} onChangeText={setDownPaymentPercent} keyboardType="numeric" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <TextField label="Installment years" value={installmentYears} onChangeText={setInstallmentYears} keyboardType="numeric" />
+          </View>
+        </View>
+      )}
+
+      <ToggleRow
+        label="Finishing"
+        options={FINISHING_LEVELS}
+        value={finishing}
+        onChange={(v) => setFinishing(v as FinishingLevel)}
+      />
+
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
           <TextField label="Bedrooms" value={bedrooms} onChangeText={setBedrooms} keyboardType="numeric" />
@@ -214,7 +254,7 @@ function ToggleRow({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   hint: { fontSize: 12, color: colors.muted },
-  row: { flexDirection: "row", gap: 8 },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   contactBox: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, gap: 10 },
   contactTitle: { fontWeight: "600", fontSize: 13, color: colors.foreground, marginBottom: 4 },
   error: { color: colors.danger, fontSize: 13 },

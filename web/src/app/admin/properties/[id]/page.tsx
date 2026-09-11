@@ -42,6 +42,23 @@ export default async function AdminPropertyReviewPage({
         <p className="text-[var(--muted)]">
           {property.area}, {property.city} · {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
         </p>
+        <p className="mt-1 text-xs text-[var(--muted)]">
+          {[
+            property.bedrooms ? `${property.bedrooms} bed` : null,
+            property.bathrooms ? `${property.bathrooms} bath` : null,
+            property.area_sqm ? `${property.area_sqm} m²` : null,
+            property.finishing ? `Finishing: ${property.finishing.replace("_", " ")}` : null,
+            property.payment_method
+              ? `Payment: ${property.payment_method}${
+                  property.payment_method === "installments" && property.down_payment_percent != null
+                    ? ` (${property.down_payment_percent}% down, ${property.installment_years ?? "?"} yr)`
+                    : ""
+                }`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
         <p className="mt-4 whitespace-pre-line text-sm">{property.description}</p>
 
         {images && images.length > 0 && (

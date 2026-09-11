@@ -30,6 +30,8 @@ interface ListingProposal {
   area?: string;
   bedrooms?: number;
   bathrooms?: number;
+  finishing?: string;
+  payment_method?: string;
 }
 
 type Proposal =
@@ -125,6 +127,8 @@ export default function ChatWidget() {
     if (p.area) draft.area = p.area;
     if (p.bedrooms != null) draft.bedrooms = String(p.bedrooms);
     if (p.bathrooms != null) draft.bathrooms = String(p.bathrooms);
+    if (p.finishing) draft.finishing = p.finishing;
+    if (p.payment_method) draft.payment_method = p.payment_method;
 
     sessionStorage.setItem("chatListingDraft", JSON.stringify(draft));
     setOpen(false);
@@ -220,6 +224,12 @@ export default function ChatWidget() {
                     <li>
                       {t.chat.priceLabel} {proposal.data.price} EGP
                     </li>
+                  )}
+                  {proposal.data.finishing && (
+                    <li>{t.finishingLevels[proposal.data.finishing as keyof typeof t.finishingLevels] || proposal.data.finishing}</li>
+                  )}
+                  {proposal.data.payment_method && (
+                    <li>{t.paymentMethods[proposal.data.payment_method as keyof typeof t.paymentMethods] || proposal.data.payment_method}</li>
                   )}
                 </ul>
                 <button

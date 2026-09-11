@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPrice, propertyPhotoUrl } from "@/lib/format";
 import InquiryForm from "@/components/InquiryForm";
 import { getServerLocale } from "@/lib/i18n/locale";
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getDictionary, interpolate } from "@/lib/i18n/dictionaries";
 
 export default async function PropertyDetailPage({
   params,
@@ -86,7 +86,7 @@ export default async function PropertyDetailPage({
               {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
             </p>
 
-            <dl className="mt-4 grid grid-cols-3 gap-4 rounded-lg border border-[var(--border)] p-4 text-sm">
+            <dl className="mt-4 grid grid-cols-2 gap-4 rounded-lg border border-[var(--border)] p-4 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-[var(--muted)]">{t.listingDetail.bedrooms}</dt>
                 <dd className="font-medium">{property.bedrooms ?? "—"}</dd>
@@ -99,6 +99,30 @@ export default async function PropertyDetailPage({
                 <dt className="text-[var(--muted)]">{t.listingDetail.area}</dt>
                 <dd className="font-medium">{property.area_sqm ? `${property.area_sqm} m²` : "—"}</dd>
               </div>
+              {property.finishing && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.finishing}</dt>
+                  <dd className="font-medium">{t.finishingLevels[property.finishing]}</dd>
+                </div>
+              )}
+              {property.payment_method && (
+                <div>
+                  <dt className="text-[var(--muted)]">{t.listingDetail.paymentMethod}</dt>
+                  <dd className="font-medium">
+                    {t.paymentMethods[property.payment_method]}
+                    {property.payment_method === "installments" &&
+                      property.down_payment_percent != null &&
+                      property.installment_years != null && (
+                        <span className="block text-xs text-[var(--muted)]">
+                          {interpolate(t.listingDetail.downPaymentAndYears, {
+                            percent: property.down_payment_percent,
+                            years: property.installment_years,
+                          })}
+                        </span>
+                      )}
+                  </dd>
+                </div>
+              )}
             </dl>
 
             <div className="mt-6 whitespace-pre-line text-sm leading-relaxed">{property.description}</div>

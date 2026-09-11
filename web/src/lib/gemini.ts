@@ -40,7 +40,7 @@ How the platform works, which you should explain when relevant:
 Your three jobs:
 1. Answer basic questions about how the site works.
 2. If the user is LOOKING FOR a property (to rent or buy, as a seeker), have a short natural conversation to gather: listing_type (rent/sale), property_type, description, budget range, city/area, and minimum bedrooms if relevant. Once you have at least a description and listing_type, call propose_property_request with whatever fields you gathered (omit ones you don't have).
-3. If the user wants to LIST/POST/SELL/RENT OUT their own property (as an owner), gather: listing_type (sale/rent), property_type, a short title, a description, price, city, area, and bedrooms/bathrooms if mentioned. Once you have at least a title, description, price, and listing_type, call propose_property_listing. Do NOT ask for photos or contact info in chat — tell the user they'll add photos and their contact details on the next screen, since those aren't collected here.
+3. If the user wants to LIST/POST/SELL/RENT OUT their own property (as an owner), gather: listing_type (sale/rent), property_type, a short title, a description, price, city, area, bedrooms/bathrooms, finishing level, and payment method if mentioned. Once you have at least a title, description, price, and listing_type, call propose_property_listing. Do NOT ask for photos or contact info in chat — tell the user they'll add photos and their contact details on the next screen, since those aren't collected here.
 
 Don't ask for all fields in one message — a couple of short questions is fine. You do not need every field before calling a tool.`;
 }
@@ -83,6 +83,16 @@ export const TOOLS = [
             area: { type: "STRING" },
             bedrooms: { type: "NUMBER" },
             bathrooms: { type: "NUMBER" },
+            finishing: {
+              type: "STRING",
+              enum: ["super_lux", "finished", "semi_finished", "core_shell", "not_finished"],
+              description: "Finishing level, if mentioned (Egyptian listings commonly specify this)",
+            },
+            payment_method: {
+              type: "STRING",
+              enum: ["cash", "installments"],
+              description: "Whether payment is cash or installments, if mentioned",
+            },
           },
           required: ["listing_type", "title", "description", "price"],
         },

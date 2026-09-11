@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, ListingType } from "@/lib/database.types";
+import type { Database, FinishingLevel, ListingType, PaymentMethod } from "@/lib/database.types";
 
 export interface PropertyFilters {
   listingType?: ListingType;
@@ -7,6 +7,8 @@ export interface PropertyFilters {
   minPrice?: number;
   maxPrice?: number;
   bedrooms?: number;
+  finishing?: FinishingLevel;
+  paymentMethod?: PaymentMethod;
 }
 
 export async function getApprovedProperties(
@@ -26,6 +28,8 @@ export async function getApprovedProperties(
   if (filters.minPrice) query = query.gte("price", filters.minPrice);
   if (filters.maxPrice) query = query.lte("price", filters.maxPrice);
   if (filters.bedrooms) query = query.gte("bedrooms", filters.bedrooms);
+  if (filters.finishing) query = query.eq("finishing", filters.finishing);
+  if (filters.paymentMethod) query = query.eq("payment_method", filters.paymentMethod);
 
   const { data, error } = await query;
   if (error) throw error;

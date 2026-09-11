@@ -11,6 +11,19 @@ import type { Database } from "../../lib/database.types";
 type Property = Database["public"]["Tables"]["properties"]["Row"];
 type PropertyImage = Database["public"]["Tables"]["property_images"]["Row"];
 
+const FINISHING_LABELS: Record<string, string> = {
+  super_lux: "Super Lux",
+  finished: "Finished",
+  semi_finished: "Semi-finished",
+  core_shell: "Core & shell",
+  not_finished: "Not finished",
+};
+
+const PAYMENT_LABELS: Record<string, string> = {
+  cash: "Cash",
+  installments: "Installments",
+};
+
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -95,6 +108,17 @@ export default function ListingDetailScreen() {
         <Fact label="Bedrooms" value={property.bedrooms ?? "—"} />
         <Fact label="Bathrooms" value={property.bathrooms ?? "—"} />
         <Fact label="Area" value={property.area_sqm ? `${property.area_sqm} m²` : "—"} />
+        {property.finishing && <Fact label="Finishing" value={FINISHING_LABELS[property.finishing] || property.finishing} />}
+        {property.payment_method && (
+          <Fact
+            label="Payment"
+            value={
+              property.payment_method === "installments" && property.down_payment_percent != null
+                ? `${PAYMENT_LABELS[property.payment_method]} (${property.down_payment_percent}% down, ${property.installment_years ?? "?"} yr)`
+                : PAYMENT_LABELS[property.payment_method] || property.payment_method
+            }
+          />
+        )}
       </View>
 
       <Text style={styles.description}>{property.description}</Text>
@@ -144,7 +168,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: "700", marginTop: 8, color: colors.foreground },
   muted: { color: colors.muted, fontSize: 13 },
   price: { fontSize: 20, fontWeight: "700", color: colors.brand, marginTop: 6 },
-  factsRow: { flexDirection: "row", gap: 16, marginTop: 16, padding: 12, borderWidth: 1, borderColor: colors.border, borderRadius: 10 },
+  factsRow: { flexDirection: "row", flexWrap: "wrap", gap: 16, marginTop: 16, padding: 12, borderWidth: 1, borderColor: colors.border, borderRadius: 10 },
   fact: { gap: 2 },
   factValue: { fontWeight: "600", color: colors.foreground },
   description: { marginTop: 16, fontSize: 14, lineHeight: 20, color: colors.foreground },
