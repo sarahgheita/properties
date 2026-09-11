@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../lib/auth-context";
 import { colors } from "../../lib/theme";
 import { formatPrice } from "../../lib/format";
+import { cityLabel } from "../../lib/egyptCities";
 import Button from "../../components/Button";
 import type { Database } from "../../lib/database.types";
 
@@ -69,7 +70,7 @@ export default function AdminDashboard() {
               <>
                 <Text style={styles.title}>{(row.item as Property).title}</Text>
                 <Text style={styles.muted}>
-                  {(row.item as Property).area}, {(row.item as Property).city} ·{" "}
+                  {(row.item as Property).area}, {cityLabel((row.item as Property).city, "en")} ·{" "}
                   {formatPrice(
                     (row.item as Property).price,
                     (row.item as Property).currency,

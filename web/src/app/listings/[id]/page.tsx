@@ -4,6 +4,7 @@ import { formatPrice, propertyPhotoUrl } from "@/lib/format";
 import InquiryForm from "@/components/InquiryForm";
 import { getServerLocale } from "@/lib/i18n/locale";
 import { getDictionary, interpolate } from "@/lib/i18n/dictionaries";
+import { cityLabel } from "@/lib/egyptCities";
 
 export default async function PropertyDetailPage({
   params,
@@ -80,7 +81,7 @@ export default async function PropertyDetailPage({
             </span>
             <h1 className="mt-2 text-2xl font-semibold">{property.title}</h1>
             <p className="text-[var(--muted)]">
-              {property.area}, {property.city}
+              {property.area}, {cityLabel(property.city, locale)}
             </p>
             <p className="mt-3 text-2xl font-semibold text-[var(--brand)]">
               {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}

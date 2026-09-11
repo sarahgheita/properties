@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../../lib/supabase";
 import { colors } from "../../../lib/theme";
 import { formatPrice, propertyPhotoUrl } from "../../../lib/format";
+import { cityLabel } from "../../../lib/egyptCities";
 import Button from "../../../components/Button";
 import type { Database } from "../../../lib/database.types";
 
@@ -66,7 +67,7 @@ export default function AdminPropertyReview() {
       {property.flagged && <Text style={styles.flag}>⚑ Flagged: {property.flag_reasons.join(", ")}</Text>}
       <Text style={styles.title}>{property.title}</Text>
       <Text style={styles.muted}>
-        {property.area}, {property.city} · {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
+        {property.area}, {cityLabel(property.city, "en")} · {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
       </Text>
       <Text style={styles.muted}>
         {[

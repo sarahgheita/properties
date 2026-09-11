@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { colors } from "../../lib/theme";
 import { formatPrice, propertyPhotoUrl } from "../../lib/format";
+import { cityLabel } from "../../lib/egyptCities";
 import { useAuth } from "../../lib/auth-context";
 import Button from "../../components/Button";
 import type { Database } from "../../lib/database.types";
@@ -98,7 +99,7 @@ export default function ListingDetailScreen() {
       <Text style={styles.badge}>{property.listing_type === "sale" ? "For Sale" : "For Rent"}</Text>
       <Text style={styles.title}>{property.title}</Text>
       <Text style={styles.muted}>
-        {property.area}, {property.city}
+        {property.area}, {cityLabel(property.city, "en")}
       </Text>
       <Text style={styles.price}>
         {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}

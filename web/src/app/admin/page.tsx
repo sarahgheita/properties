@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
+import { cityLabel } from "@/lib/egyptCities";
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -49,7 +50,7 @@ export default async function AdminDashboard() {
                     {p.title}
                   </p>
                   <p className="text-[var(--muted)]">
-                    {p.area}, {p.city} · {formatPrice(p.price, p.currency, p.listing_type, p.rent_period)}
+                    {p.area}, {cityLabel(p.city, "en")} · {formatPrice(p.price, p.currency, p.listing_type, p.rent_period)}
                   </p>
                 </div>
                 <span className="text-[var(--brand)]">Review →</span>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { scanForContactLeak } from "@/lib/moderation";
 import { useLocale } from "@/components/LocaleProvider";
+import { EGYPT_CITIES } from "@/lib/egyptCities";
 import type { FinishingLevel, ListingType, PaymentMethod, PropertyType } from "@/lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -36,7 +37,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 export default function PropertyForm() {
   const router = useRouter();
-  const { t, interpolate } = useLocale();
+  const { t, interpolate, locale } = useLocale();
 
   // If the AI chat assistant already gathered listing details, it stashes them here before
   // sending the user to this page — pick them up once so the form arrives pre-filled.
@@ -178,7 +179,12 @@ export default function PropertyForm() {
             {t.propertyForm.listingType} *
             <select
               value={listingType}
-              onChange={(e) => setListingType(e.target.value as ListingType)}
+              onChange={(e) => {
+                const next = e.target.value as ListingType;
+                setListingType(next);
+                // Cash/installments only applies to a sale — clear it if switching to rent.
+                if (next === "rent") setPaymentMethod("");
+              }}
               className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
             >
               <option value="sale">{t.listings.forSale}</option>
@@ -225,7 +231,16 @@ export default function PropertyForm() {
         <div className="grid grid-cols-2 gap-4">
           <label className="block text-sm">
             {t.propertyForm.city} *
-            <input name="city" required defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+            <select name="city" required defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+              <option value="" disabled>
+                {t.propertyForm.citySelect}
+              </option>
+              {EGYPT_CITIES.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {locale === "ar" ? c.ar : c.en}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="block text-sm">
             {t.propertyForm.area} *
@@ -250,24 +265,26 @@ export default function PropertyForm() {
               </select>
             </label>
           )}
-          <label className="block text-sm">
-            {t.propertyForm.paymentMethod}
-            <select
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}
-              className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
-            >
-              <option value="">{t.propertyForm.paymentMethodUnspecified}</option>
-              {PAYMENT_METHODS.map((pm) => (
-                <option key={pm} value={pm}>
-                  {t.paymentMethods[pm]}
-                </option>
-              ))}
-            </select>
-          </label>
+          {listingType === "sale" && (
+            <label className="block text-sm">
+              {t.propertyForm.paymentMethod}
+              <select
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}
+                className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2"
+              >
+                <option value="">{t.propertyForm.paymentMethodUnspecified}</option>
+                {PAYMENT_METHODS.map((pm) => (
+                  <option key={pm} value={pm}>
+                    {t.paymentMethods[pm]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
 
-        {paymentMethod === "installments" && (
+        {listingType === "sale" && paymentMethod === "installments" && (
           <div className="grid grid-cols-2 gap-4">
             <label className="block text-sm">
               {t.propertyForm.downPaymentPercent}

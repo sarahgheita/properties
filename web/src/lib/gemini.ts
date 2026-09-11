@@ -1,4 +1,5 @@
 import { SITE_NAME } from "@/lib/site";
+import { EGYPT_CITIES } from "@/lib/egyptCities";
 
 // A stable alias rather than a dated version — Google periodically retires versioned model
 // names (this broke once already), but "-latest" aliases keep resolving to a current model.
@@ -26,6 +27,11 @@ const PROPERTY_TYPE_ENUM = [
   "other",
 ];
 
+// Slugs matching the site's city dropdown (Egypt's governorates and major cities) — constraining
+// the model to these means a drafted proposal's city pre-fills the form's dropdown correctly,
+// instead of free text that likely wouldn't match any option.
+const CITY_ENUM = EGYPT_CITIES.map((c) => c.value);
+
 export function buildSystemInstruction(locale: string) {
   const hint = LANGUAGE_HINT[locale] || LANGUAGE_HINT.en;
   return `You are the assistant for ${SITE_NAME}, a real-estate marketplace in Egypt run by a single agent.
@@ -42,7 +48,7 @@ Your three jobs:
 2. If the user is LOOKING FOR a property (to rent or buy, as a seeker), have a short natural conversation to gather: listing_type (rent/sale), property_type, description, budget range, city/area, and minimum bedrooms if relevant. Once you have at least a description and listing_type, call propose_property_request with whatever fields you gathered (omit ones you don't have).
 3. If the user wants to LIST/POST/SELL/RENT OUT their own property (as an owner), gather: listing_type (sale/rent), property_type, a short title, a description, price, city, area, bedrooms/bathrooms, finishing level, and payment method if mentioned. Once you have at least a title, description, price, and listing_type, call propose_property_listing. Do NOT ask for photos or contact info in chat — tell the user they'll add photos and their contact details on the next screen, since those aren't collected here.
 
-Don't ask for all fields in one message — a couple of short questions is fine. You do not need every field before calling a tool.`;
+Don't ask for all fields in one message — a couple of short questions is fine. You do not need every field before calling a tool. The "city" field must be one of the enum values given in the tool schema (Egypt's governorates/major cities as slugs, e.g. "new_cairo", "giza", "alexandria") — pick the closest match to what the user says, and put any more specific neighborhood or district name in "area" instead.`;
 }
 
 export const TOOLS = [
@@ -60,7 +66,7 @@ export const TOOLS = [
             description: { type: "STRING", description: "A natural-language summary of what they want" },
             budget_min: { type: "NUMBER" },
             budget_max: { type: "NUMBER" },
-            city: { type: "STRING" },
+            city: { type: "STRING", enum: CITY_ENUM },
             area: { type: "STRING" },
             bedrooms_min: { type: "NUMBER" },
           },
@@ -79,7 +85,7 @@ export const TOOLS = [
             title: { type: "STRING", description: "A short listing title" },
             description: { type: "STRING", description: "A natural-language description of the property" },
             price: { type: "NUMBER" },
-            city: { type: "STRING" },
+            city: { type: "STRING", enum: CITY_ENUM },
             area: { type: "STRING" },
             bedrooms: { type: "NUMBER" },
             bathrooms: { type: "NUMBER" },

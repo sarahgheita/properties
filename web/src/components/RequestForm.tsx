@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { scanForContactLeak } from "@/lib/moderation";
 import { useLocale } from "@/components/LocaleProvider";
+import { EGYPT_CITIES } from "@/lib/egyptCities";
 import type { ListingType, PropertyType } from "@/lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -22,7 +23,7 @@ const PROPERTY_TYPES: PropertyType[] = [
 
 export default function RequestForm() {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   // If the AI chat assistant already gathered details, it stashes them here before sending the
   // user to this page — pick them up once so the form arrives pre-filled.
@@ -165,7 +166,14 @@ export default function RequestForm() {
         </label>
         <label className="block text-sm">
           {t.requestForm.city}
-          <input name="city" defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2" />
+          <select name="city" defaultValue={initial?.city || ""} className="mt-1 w-full rounded-md border border-[var(--border)] px-3 py-2">
+            <option value="">{t.requestForm.citySelect}</option>
+            {EGYPT_CITIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {locale === "ar" ? c.ar : c.en}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="block text-sm">
           {t.requestForm.minBedrooms}

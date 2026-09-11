@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { getServerLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { cityLabel } from "@/lib/egyptCities";
 
 export default async function RequestsPage({
   searchParams,
@@ -56,7 +57,7 @@ export default async function RequestsPage({
                 {r.property_type && <span className="text-[var(--muted)]">{t.propertyTypes[r.property_type]}</span>}
                 {(r.city || r.area) && (
                   <span className="text-[var(--muted)]">
-                    · {[r.area, r.city].filter(Boolean).join(", ")}
+                    · {[r.area, cityLabel(r.city, locale)].filter(Boolean).join(", ")}
                   </span>
                 )}
               </div>

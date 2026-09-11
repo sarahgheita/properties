@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/components/LocaleProvider";
+import { cityLabel } from "@/lib/egyptCities";
 
 interface Message {
   role: "user" | "model";
@@ -174,7 +175,7 @@ export default function ChatWidget() {
                   )}
                   {(proposal.data.city || proposal.data.area) && (
                     <li>
-                      {t.chat.areaLabel} {[proposal.data.area, proposal.data.city].filter(Boolean).join(", ")}
+                      {t.chat.areaLabel} {[proposal.data.area, cityLabel(proposal.data.city, locale)].filter(Boolean).join(", ")}
                     </li>
                   )}
                   {(proposal.data.budget_min || proposal.data.budget_max) && (
@@ -217,7 +218,7 @@ export default function ChatWidget() {
                   )}
                   {(proposal.data.city || proposal.data.area) && (
                     <li>
-                      {t.chat.areaLabel} {[proposal.data.area, proposal.data.city].filter(Boolean).join(", ")}
+                      {t.chat.areaLabel} {[proposal.data.area, cityLabel(proposal.data.city, locale)].filter(Boolean).join(", ")}
                     </li>
                   )}
                   {proposal.data.price != null && (

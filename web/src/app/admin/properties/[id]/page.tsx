@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPrice, propertyPhotoUrl } from "@/lib/format";
 import { approveProperty, rejectProperty } from "@/app/admin/actions";
 import ReviewActions from "@/components/admin/ReviewActions";
+import { cityLabel } from "@/lib/egyptCities";
 
 export default async function AdminPropertyReviewPage({
   params,
@@ -40,7 +41,7 @@ export default async function AdminPropertyReviewPage({
         </div>
         <h1 className="mt-2 text-xl font-semibold">{property.title}</h1>
         <p className="text-[var(--muted)]">
-          {property.area}, {property.city} · {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
+          {property.area}, {cityLabel(property.city, "en")} · {formatPrice(property.price, property.currency, property.listing_type, property.rent_period)}
         </p>
         <p className="mt-1 text-xs text-[var(--muted)]">
           {[

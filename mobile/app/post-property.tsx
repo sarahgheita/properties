@@ -8,6 +8,7 @@ import { scanForContactLeak } from "../lib/moderation";
 import { colors } from "../lib/theme";
 import TextField from "../components/TextField";
 import Button from "../components/Button";
+import CityPicker from "../components/CityPicker";
 import type { FinishingLevel, ListingType, PaymentMethod, PropertyType } from "../lib/database.types";
 
 const PROPERTY_TYPES: PropertyType[] = [
@@ -148,7 +149,11 @@ export default function PostPropertyScreen() {
         label="Listing type"
         options={[{ label: "For Sale", value: "sale" }, { label: "For Rent", value: "rent" }]}
         value={listingType}
-        onChange={(v) => setListingType(v as ListingType)}
+        onChange={(v) => {
+          setListingType(v as ListingType);
+          // Cash/installments only applies to a sale — clear it if switching to rent.
+          if (v === "rent") setPaymentMethod("");
+        }}
       />
 
       <TextField label="Title *" value={title} onChangeText={setTitle} placeholder="e.g. Modern 3BR apartment" />
@@ -163,13 +168,15 @@ export default function PostPropertyScreen() {
       />
       <TextField label="Price (EGP) *" value={price} onChangeText={setPrice} keyboardType="numeric" />
 
-      <ToggleRow
-        label="Payment method"
-        options={[{ label: "Cash", value: "cash" }, { label: "Installments", value: "installments" }]}
-        value={paymentMethod}
-        onChange={(v) => setPaymentMethod(v as PaymentMethod)}
-      />
-      {paymentMethod === "installments" && (
+      {listingType === "sale" && (
+        <ToggleRow
+          label="Payment method"
+          options={[{ label: "Cash", value: "cash" }, { label: "Installments", value: "installments" }]}
+          value={paymentMethod}
+          onChange={(v) => setPaymentMethod(v as PaymentMethod)}
+        />
+      )}
+      {listingType === "sale" && paymentMethod === "installments" && (
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <TextField label="Down payment %" value={downPaymentPercent} onChangeText={setDownPaymentPercent} keyboardType="numeric" />
@@ -201,7 +208,7 @@ export default function PostPropertyScreen() {
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <TextField label="City *" value={city} onChangeText={setCity} />
+          <CityPicker label="City *" value={city} onChange={setCity} />
         </View>
         <View style={{ flex: 1 }}>
           <TextField label="Area *" value={area} onChangeText={setArea} />

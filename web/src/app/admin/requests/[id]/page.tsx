@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import { approveRequest, rejectRequest } from "@/app/admin/actions";
 import ReviewActions from "@/components/admin/ReviewActions";
+import { cityLabel } from "@/lib/egyptCities";
 
 export default async function AdminRequestReviewPage({
   params,
@@ -38,7 +39,7 @@ export default async function AdminRequestReviewPage({
         <h1 className="mt-2 text-xl font-semibold">
           Wants to {request.listing_type === "sale" ? "buy" : "rent"} {request.property_type || "a property"}
         </h1>
-        <p className="text-[var(--muted)]">{[request.area, request.city].filter(Boolean).join(", ")}</p>
+        <p className="text-[var(--muted)]">{[request.area, cityLabel(request.city, "en")].filter(Boolean).join(", ")}</p>
         <p className="mt-4 whitespace-pre-line text-sm">{request.description}</p>
 
         {(request.budget_min || request.budget_max) && (

@@ -7,6 +7,7 @@ import { scanForContactLeak } from "../lib/moderation";
 import { colors } from "../lib/theme";
 import TextField from "../components/TextField";
 import Button from "../components/Button";
+import CityPicker from "../components/CityPicker";
 import type { ListingType } from "../lib/database.types";
 
 // Fields arrive here as string params when the AI assistant (app/(tabs)/chat.tsx) hands off
@@ -121,7 +122,7 @@ export default function PostRequestScreen() {
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <TextField label="City" value={city} onChangeText={setCity} />
+          <CityPicker label="City" value={city} onChange={setCity} />
         </View>
         <View style={{ flex: 1 }}>
           <TextField label="Area" value={area} onChangeText={setArea} />

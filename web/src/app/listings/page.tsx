@@ -4,6 +4,7 @@ import { getApprovedProperties, getCoverPhotos } from "@/lib/queries";
 import PropertyCard from "@/components/PropertyCard";
 import { getServerLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { EGYPT_CITIES } from "@/lib/egyptCities";
 import type { FinishingLevel, ListingType, PaymentMethod } from "@/lib/database.types";
 
 const FINISHING_LEVELS: FinishingLevel[] = ["super_lux", "finished", "semi_finished", "core_shell", "not_finished"];
@@ -56,13 +57,14 @@ export default async function ListingsPage({
           <option value="sale">{t.listings.forSale}</option>
           <option value="rent">{t.listings.forRent}</option>
         </select>
-        <input
-          type="text"
-          name="city"
-          placeholder={t.listings.city}
-          defaultValue={city || ""}
-          className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm"
-        />
+        <select name="city" defaultValue={city || ""} className="rounded-md border border-[var(--border)] px-2 py-1.5 text-sm">
+          <option value="">{t.listings.anyCity}</option>
+          {EGYPT_CITIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {locale === "ar" ? c.ar : c.en}
+            </option>
+          ))}
+        </select>
         <input
           type="number"
           name="min"

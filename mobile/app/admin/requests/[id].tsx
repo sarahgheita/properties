@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { supabase } from "../../../lib/supabase";
 import { colors } from "../../../lib/theme";
 import { formatPrice } from "../../../lib/format";
+import { cityLabel } from "../../../lib/egyptCities";
 import Button from "../../../components/Button";
 import type { Database } from "../../../lib/database.types";
 
@@ -62,7 +63,7 @@ export default function AdminRequestReview() {
       {request.flagged && <Text style={styles.flag}>⚑ Flagged: {request.flag_reasons.join(", ")}</Text>}
       {request.source === "ai_chat" && <Text style={styles.source}>via AI assistant</Text>}
       <Text style={styles.title}>Wants to {request.listing_type === "sale" ? "buy" : "rent"}</Text>
-      <Text style={styles.muted}>{[request.area, request.city].filter(Boolean).join(", ")}</Text>
+      <Text style={styles.muted}>{[request.area, cityLabel(request.city, "en")].filter(Boolean).join(", ")}</Text>
       <Text style={styles.desc}>{request.description}</Text>
       {(request.budget_min || request.budget_max) && (
         <Text style={styles.muted}>

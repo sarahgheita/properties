@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import InquiryStatusSelect from "@/components/admin/InquiryStatusSelect";
+import { cityLabel } from "@/lib/egyptCities";
 
 export default async function AdminInquiriesPage() {
   const supabase = await createClient();
@@ -44,7 +45,7 @@ export default async function AdminInquiriesPage() {
                   <p className="font-medium">{property?.title || "Property"}</p>
                   <InquiryStatusSelect id={inq.id} status={inq.status} />
                 </div>
-                <p className="text-[var(--muted)]">{[property?.area, property?.city].filter(Boolean).join(", ")}</p>
+                <p className="text-[var(--muted)]">{[property?.area, cityLabel(property?.city, "en")].filter(Boolean).join(", ")}</p>
                 <p className="mt-2">{inq.message}</p>
                 <p className="mt-2 text-xs text-[var(--muted)]">
                   From: {requester?.full_name || "Unnamed"} · {requester?.email || "no email on file"}

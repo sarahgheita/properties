@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatPrice, propertyPhotoUrl } from "@/lib/format";
 import { getDictionary, type Locale } from "@/lib/i18n/dictionaries";
+import { cityLabel } from "@/lib/egyptCities";
 import type { Database } from "@/lib/database.types";
 
 type Property = Database["public"]["Tables"]["properties"]["Row"];
@@ -47,7 +48,7 @@ export default function PropertyCard({
             {property.listing_type === "sale" ? t.listings.forSale : t.listings.forRent}
           </span>
           <span className="text-[var(--muted)]">
-            {property.area}, {property.city}
+            {property.area}, {cityLabel(property.city, locale)}
           </span>
         </div>
         <h3 className="mt-2 line-clamp-1 font-medium">{property.title}</h3>

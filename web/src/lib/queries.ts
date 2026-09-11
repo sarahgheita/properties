@@ -24,7 +24,7 @@ export async function getApprovedProperties(
     .limit(limit);
 
   if (filters.listingType) query = query.eq("listing_type", filters.listingType);
-  if (filters.city) query = query.ilike("city", `%${filters.city}%`);
+  if (filters.city) query = query.eq("city", filters.city);
   if (filters.minPrice) query = query.gte("price", filters.minPrice);
   if (filters.maxPrice) query = query.lte("price", filters.maxPrice);
   if (filters.bedrooms) query = query.gte("bedrooms", filters.bedrooms);
