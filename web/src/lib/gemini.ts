@@ -1,6 +1,8 @@
 import { SITE_NAME } from "@/lib/site";
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+// A stable alias rather than a dated version — Google periodically retires versioned model
+// names (this broke once already), but "-latest" aliases keep resolving to a current model.
+const GEMINI_MODEL = "gemini-flash-latest";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 const LANGUAGE_HINT: Record<string, string> = {
